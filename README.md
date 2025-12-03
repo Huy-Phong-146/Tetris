@@ -60,7 +60,7 @@ Thuật toán kiểm tra tính hợp lệ của nước đi (Next Move Validity)
 ---
 ## 📂 Cấu trúc dự án
 
-Cài đặt & Hướng dẫn sử dụng
+## Cài đặt & Hướng dẫn sử dụng
 
 Yêu cầu hệ thống:
 ...
@@ -68,25 +68,23 @@ Yêu cầu hệ thống:
 🎮 Điều khiển\
 ...
 
-📊 Kết quả mô phỏng
-1. Giao diện Gameplay:
-...
-2. Xử lý va chạm và Xóa hàng:
-...
+## 📊 Kết quả mô phỏng
+
 
 👥 Thành viên thực hiện 
 <div align="center">
 
-| STT |   MSSV   |      Họ và tên       | 
-|:---:|:--------:| ---------------------|
-|  1  | 23521128 | Nguyễn Thị Quỳnh Như |
-|  2  | 24521314 | Nguyễn Văn Phát      |
-|  3  | 24521381 | Lê Văn Hữu Phúc      |
-|  4  | 24521344 | Thái Hoàng Huy Phong |
+| STT |   MSSV   |        Họ và tên       | 
+|:---:|:--------:| -----------------------|
+|  1  | 23521128 | Nguyễn Thị Quỳnh Như   |
+|  2  | 24521314 | Nguyễn Văn Phát        |
+|  3  | 24521381 | Lê Văn Hữu Phúc        |
+|  4  | 24521344 | Thái Hoàng Huy Phong   |
+|  5  | 24521175 | Nguyễn Dương Phạm Trần |
 
 </div>
 
-📚 Tài liệu tham khảo
+## 📚 Tài liệu tham khảo
 
 1. Wikipedia, "Tetris - Game Logic and Rules", [Online]. Available: https://en.wikipedia.org/wiki/Tetris
 2. Game Programming Patterns, "The Game Loop".
