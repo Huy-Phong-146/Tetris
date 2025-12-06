@@ -39,7 +39,47 @@
 Trò chơi được xây dựng dựa trên hệ tọa độ Descartes và các ma trận biểu diễn trạng thái.
 
 ### 1. Hệ tọa độ và Ma trận xoay (Rotation Matrix)
-Các khối Tetromino được biểu diễn trong một ma trận cục bộ. Để xoay một điểm $(Nguyễn |
+Các khối Tetromino được biểu diễn trong một ma trận cục bộ. Để xoay một điểm $(x, y)$ một góc $90^\circ$ theo chiều kim đồng hồ quanh gốc tọa độ, ta áp dụng công thức biến đổi tuyến tính:
+
+* **Công thức tổng quát:**
+....
+
+* **Với góc $\theta = 90^\circ$ (trong hệ tọa độ màn hình máy tính):**
+....
+
+### 2. Phát hiện va chạm (Collision Detection)
+Thuật toán kiểm tra tính hợp lệ của nước đi (Next Move Validity). Một vị trí $(x, y)$ của khối gạch được coi là hợp lệ nếu thỏa mãn:
+
+...
+
+### 3. Hệ thống tính điểm (Scoring Algorithm)
+Điểm số ($S$) được tính dựa trên số hàng ($n$) xóa được cùng một lúc (Combo):
+
+...
+
+---
+## 📂 Cấu trúc dự án
+
+## Cài đặt & Hướng dẫn sử dụng
+
+Yêu cầu hệ thống:
+...
+
+🎮 Điều khiển\
+...
+
+## 📊 Kết quả mô phỏng
+
+👥 Thành viên thực hiện 
+<div align="center">
+
+| STT |   MSSV   |      Họ và tên         | 
+|:---:|:--------:| ---------------------  |
+|  1  | 23521128 | Nguyễn Thị Quỳnh Như   |
+|  2  | 24521314 | Nguyễn Văn Phát        |
+|  3  | 24521381 | Lê Văn Hữu Phúc        |
+|  4  | 24521344 | Thái Hoàng Huy Phong   |
+|  5  | 24521175 | Dương Phạm Trần Nguyễn |
 
 </div>
 
