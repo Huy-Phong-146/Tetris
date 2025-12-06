@@ -7,6 +7,7 @@ using namespace std;
 
 # define H 20
 # define W 15
+int gameSpeed = 200;
 char board[H][W] = {} ;
 char blocks[][4][4] = {
         {{' ','I',' ',' '},
@@ -122,6 +123,13 @@ bool canMove(int dx, int dy){
                 if ( board[ty][tx] != ' ') return false;
             }
     return true;
+}
+
+void increaseSpeed()//Hàm tăng tốc độ cho game, thêm hàm này ngay sau remove lines được thực hiện
+{
+    if(gameSpeed > 50) {
+        gameSpeed -= 5;
+    }
 }
 
 int main() {
