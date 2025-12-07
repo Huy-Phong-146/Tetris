@@ -126,6 +126,15 @@ bool canMove(int dx, int dy){
     return true;
 }
 
+void animateLineClear(int line) {
+    // Thay đổi các ô trong hàng thành ký tự particle
+    for (int k = 1; k < W-1 ; k++ ) {
+        board[line][k] = '*'; // Ký tự nhấp nháy/particle
+    }
+    draw();
+    _sleep(100); // Dừng ngắn để người dùng thấy hiệu ứng
+}
+
 void removeLine(){
     int j;
 
@@ -135,6 +144,7 @@ void removeLine(){
                 break;
 
         if (j == W - 1){
+            animateLineClear(i);
             for (int ii = i; ii >0 ; ii-- )
                 for (int j = 0; j < W-1 ; j++ ) board[ii][j] = board[ii-1][j];
 
@@ -145,7 +155,7 @@ void removeLine(){
     }
 }
 
-void increaseSpeed() {
+void increaseSpeed(){
     if(gameSpeed > 50) {
         gameSpeed -= 5;
     }
