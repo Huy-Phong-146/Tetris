@@ -125,7 +125,13 @@ bool canMove(int dx, int dy){
     return true;
 }
 
-<<<<<<< HEAD
+void increaseSpeed()
+{
+    if(gameSpeed > 50) {
+        gameSpeed -= 10;
+    }
+}
+
 void removeLine(){
     int j;
 
@@ -140,14 +146,9 @@ void removeLine(){
 
             i++;
             draw();
-            _sleep(200);
+            increaseSpeed();
+            _sleep(gameSpeed);
         }
-=======
-void increaseSpeed()//Hàm tăng tốc độ cho game, thêm hàm này ngay sau remove lines được thực hiện
-{
-    if(gameSpeed > 50) {
-        gameSpeed -= 5;
->>>>>>> 6b018ad7587719d5db013b4b6e01eb7b34df8da7
     }
 }
 
@@ -177,7 +178,7 @@ int main() {
 
         block2Board();
         draw();
-        _sleep(200);
+        _sleep(gameSpeed);
     }
 
     return 0;
