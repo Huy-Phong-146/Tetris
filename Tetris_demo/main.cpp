@@ -7,6 +7,7 @@ using namespace std;
 
 # define H 20
 # define W 15
+
 int gameSpeed = 200;
 char board[H][W] = {} ;
 char blocks[][4][4] = {
@@ -125,13 +126,13 @@ bool canMove(int dx, int dy){
     return true;
 }
 
-void increaseSpeed()//Hàm tăng tốc độ cho game, thêm hàm này ngay sau remove lines được thực hiện
+void increaseSpeed()
 {
     if(gameSpeed > 50) {
         gameSpeed -= 5;
     }
 }
-// Chức năng xoay
+
 void rotateBlock() {
     char rot[4][4], tmp[4][4];
 
@@ -156,6 +157,7 @@ void rotateBlock() {
         for (int j = 0; j < 4; j++)
             blocks[b][i][j] = rot[i][j];
 }
+
 int main() {
     srand(time(0));
     b = rand() % 7;
@@ -168,8 +170,8 @@ int main() {
         if (kbhit()){
             char c = getch();
             if (c=='a' && canMove(-1,0)) x--;
-            if (c=='d' && canMove(1,0) ) x++;
-            if (c=='x' && canMove(0,1))  y++;
+            if (c=='d' && canMove( 1,0)) x++;
+            if (c=='x' && canMove( 0,1)) y++;
             if (c=='w') rotateBlock();
             if (c=='q') break;
         }
