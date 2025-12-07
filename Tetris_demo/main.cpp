@@ -135,7 +135,7 @@ void removeLine(){
         if (j == W - 1){
             for (int ii = i; ii >0 ; ii-- )
                 for (int j = 0; j < W-1 ; j++ ) board[ii][j] = board[ii-1][j];
-            
+
             i++;
             draw();
             _sleep(200);
@@ -163,6 +163,7 @@ int main() {
         if (canMove(0,1)) y++;
         else {
             block2Board();
+            removeLine();
             x = 5; y = 0; b = rand() % 7;
         }
 
