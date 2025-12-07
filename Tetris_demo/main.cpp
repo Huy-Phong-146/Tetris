@@ -131,7 +131,31 @@ void increaseSpeed()//Hàm tăng tốc độ cho game, thêm hàm này ngay sau 
         gameSpeed -= 5;
     }
 }
+// Thêm chức năng xoay
+void rotateBlock() {
+    char rot[4][4], tmp[4][4];
 
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            tmp[i][j] = blocks[b][i][j];
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            rot[j][3 - i] = tmp[i][j];
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            if (rot[i][j] != ' ') {
+                int tx = x + j;
+                int ty = y + i;
+                if (tx < 1 || tx >= W - 1 || ty >= H - 1) return;
+                if (board[ty][tx] != ' ') return;
+            }
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            blocks[b][i][j] = rot[i][j];
+}
 int main() {
     srand(time(0));
     b = rand() % 7;
@@ -145,7 +169,8 @@ int main() {
             char c = getch();
             if (c=='a' && canMove(-1,0)) x--;
             if (c=='d' && canMove(1,0) ) x++;
-            if (c=='x' && canMove(0,1))  y++;
+            if (c=='s' && canMove(0,1))  y++; // di chuyển bằng a,d,w,s
+            if (c == 'w') rotateBlock();
             if (c=='q') break;
         }
 
