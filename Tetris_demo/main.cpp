@@ -131,7 +131,7 @@ void increaseSpeed()//Hàm tăng tốc độ cho game, thêm hàm này ngay sau 
         gameSpeed -= 5;
     }
 }
-// Thêm chức năng xoay
+// Chức năng xoay
 void rotateBlock() {
     char rot[4][4], tmp[4][4];
 
@@ -169,8 +169,8 @@ int main() {
             char c = getch();
             if (c=='a' && canMove(-1,0)) x--;
             if (c=='d' && canMove(1,0) ) x++;
-            if (c=='s' && canMove(0,1))  y++; // di chuyển bằng a,d,w,s
-            if (c == 'w') rotateBlock();
+            if (c=='x' && canMove(0,1))  y++;
+            if (c=='w') rotateBlock();
             if (c=='q') break;
         }
 
