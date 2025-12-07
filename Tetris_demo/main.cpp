@@ -7,6 +7,7 @@ using namespace std;
 
 # define H 20
 # define W 15
+int gameSpeed = 200;
 char board[H][W] = {} ;
 char blocks[][4][4] = {
         {{' ','I',' ',' '},
@@ -124,6 +125,7 @@ bool canMove(int dx, int dy){
     return true;
 }
 
+<<<<<<< HEAD
 void removeLine(){
     int j;
 
@@ -140,6 +142,12 @@ void removeLine(){
             draw();
             _sleep(200);
         }
+=======
+void increaseSpeed()//Hàm tăng tốc độ cho game, thêm hàm này ngay sau remove lines được thực hiện
+{
+    if(gameSpeed > 50) {
+        gameSpeed -= 5;
+>>>>>>> 6b018ad7587719d5db013b4b6e01eb7b34df8da7
     }
 }
 

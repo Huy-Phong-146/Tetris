@@ -70,17 +70,16 @@ Yêu cầu hệ thống:
 
 ## 📊 Kết quả mô phỏng
 
-
 👥 Thành viên thực hiện 
 <div align="center">
 
-| STT |   MSSV   |        Họ và tên       | 
-|:---:|:--------:| -----------------------|
+| STT |   MSSV   |      Họ và tên         | 
+|:---:|:--------:| ---------------------  |
 |  1  | 23521128 | Nguyễn Thị Quỳnh Như   |
 |  2  | 24521314 | Nguyễn Văn Phát        |
 |  3  | 24521381 | Lê Văn Hữu Phúc        |
 |  4  | 24521344 | Thái Hoàng Huy Phong   |
-|  5  | 24521175 | Nguyễn Dương Phạm Trần |
+|  5  | 24521175 | Dương Phạm Trần Nguyễn |
 
 </div>
 
