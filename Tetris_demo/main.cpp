@@ -115,6 +115,7 @@ void removeLine(){
 
         if (j == W - 1){
             animateLineClear(i);
+
             for (int ii = i; ii >0 ; ii-- )
                 for (int j = 0; j < W-1 ; j++ ) board[ii][j] = board[ii-1][j];
 
@@ -125,7 +126,8 @@ void removeLine(){
     }
 }
 
-void increaseSpeed(){
+
+void increaseSpeed() {
     if(gameSpeed > 50) {
         gameSpeed -= 5;
     }
@@ -156,11 +158,23 @@ void rotateBlock() {
             blocks[b][i][j] = rot[i][j];
 }
 
+void hideCursor() {
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    info.dwSize = 100;
+    info.bVisible = FALSE;
+    SetConsoleCursorInfo(consoleHandle, &info);
+}
+
 int main() {
     srand(time(0));
-    b = rand() % 7;
+    b = rand() % 2;
+
+    hideCursor();
     system("cls");
+
     initBoard();
+    int timer = 0;
 
     while (1){
         boardDelBlock();
@@ -174,16 +188,23 @@ int main() {
             if (c=='q') break;
         }
 
-        if (canMove(0,1)) y++;
-        else {
-            block2Board();
-            removeLine();
-            x = 5; y = 0; b = rand() % 7;
+        if (timer > gameSpeed) {
+            if (canMove(0,1)) y++;
+            else {
+                block2Board();
+                removeLine();
+                increaseSpeed();
+                x = 5; y = 0; b = rand() % 2;
+            }
+
+            timer = 0;
         }
 
         block2Board();
         draw();
-        _sleep(200);
+
+        _sleep(50);
+        timer += 50;
     }
 
     return 0;
