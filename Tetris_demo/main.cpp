@@ -45,6 +45,7 @@ char blocks[][4][4] = {
          {'Z','Z',' ',' '},
          {' ','Z','Z',' '},
          {' ',' ',' ',' '}}
+
 };
 
 int x = 4;
@@ -126,7 +127,6 @@ void removeLine(){
     }
 }
 
-
 void increaseSpeed() {
     if(gameSpeed > 50) {
         gameSpeed -= 5;
@@ -168,12 +168,12 @@ void hideCursor() {
 
 int main() {
     srand(time(0));
-    b = rand() % 2;
 
+    b = rand() % 7;
     hideCursor();
     system("cls");
-
     initBoard();
+
     int timer = 0;
 
     while (1){
@@ -194,7 +194,7 @@ int main() {
                 block2Board();
                 removeLine();
                 increaseSpeed();
-                x = 5; y = 0; b = rand() % 2;
+                x = 5; y = 0; b = rand() % 7;
             }
 
             timer = 0;
