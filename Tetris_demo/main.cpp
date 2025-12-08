@@ -108,7 +108,6 @@ void initBoard(){
 
 void draw(){
     gotoxy(0,0);
-
     for (int i = 0 ; i < H ; i++, cout<<endl)
         for (int j = 0 ; j < W ; j++)
             cout<<board[i][j];
@@ -126,13 +125,6 @@ bool canMove(int dx, int dy){
     return true;
 }
 
-void increaseSpeed()
-{
-    if(gameSpeed > 50) {
-        gameSpeed -= 10;
-    }
-}
-
 void removeLine(){
     int j;
 
@@ -147,15 +139,29 @@ void removeLine(){
 
             i++;
             draw();
-            increaseSpeed();
-            _sleep(gameSpeed);
+            _sleep(200);
         }
     }
+}
+
+void increaseSpeed() {
+    if(gameSpeed > 50) {
+        gameSpeed -= 5;
+    }
+}
+
+void hideCursor() {
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    info.dwSize = 100;
+    info.bVisible = FALSE;
+    SetConsoleCursorInfo(consoleHandle, &info);
 }
 
 int main() {
     srand(time(0));
     b = rand() % 7;
+    hideCursor();
     system("cls");
     initBoard();
 
@@ -177,7 +183,6 @@ int main() {
             else {
                 block2Board();
                 removeLine();
-                increaseSpeed();
                 x = 5; y = 0; b = rand() % 7;
             }
 
