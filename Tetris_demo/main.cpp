@@ -9,9 +9,13 @@ using namespace std;
 #define HEIGHT 20
 #define WIDTH 15
 #define BLOCK_SIZE 4
+#define DEFAULT_GAME_SPEED 200
+#define MAX_GAME_SPEED 50
+#define D_SPEED_DECREASE 10
 
-char board[HEIGHT][WIDTH] = {} ;
-
+//=============================
+// BaseBlock Class and Concrete Classes
+//=============================
 class BaseBlock {
 public:
     int x;
@@ -26,7 +30,7 @@ public:
 
     virtual ~BaseBlock() {}
 
-    virtual void rotate() {
+    void rotate(const vector<vector<char>>& grid) {
         vector<vector<char>> tmp = shape;
         vector<vector<char>> rot = vector<vector<char>>(BLOCK_SIZE, vector<char>(BLOCK_SIZE, ' '));
 
@@ -45,7 +49,7 @@ public:
                 if (tx < 1
                  || tx >= WIDTH - 1
                  || ty >= HEIGHT - 1
-                 || board[ty][tx] != ' ')
+                 || grid[ty][tx] != ' ')
                     return;
         }
 
@@ -108,177 +112,192 @@ public:
     }
 };
 
-int gameSpeed = 200;
-char blocks[][4][4] = {
-        {{' ','I',' ',' '},
-         {' ','I',' ',' '},
-         {' ','I',' ',' '},
-         {' ','I',' ',' '}},
+// =====================
+// Board Class
+// =====================
+class Board {
+public:
+    vector<vector<char>> grid;
 
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
+    Board() {
+        grid = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
+        grid.emplace_back(vector<char>(WIDTH, '#'));
 
-        {{' ',' ',' ',' '},
-         {' ','T',' ',' '},
-         {'T','T','T',' '},
-         {' ',' ',' ',' '}},
-
-        {{' ',' ',' ',' '},
-         {' ',' ','L',' '},
-         {'L','L','L',' '},
-         {' ',' ',' ',' '}},
-
-        {{' ',' ',' ',' '},
-         {'J',' ',' ',' '},
-         {'J','J','J',' '},
-         {' ',' ',' ',' '}},
-
-        {{' ',' ',' ',' '},
-         {' ','S','S',' '},
-         {'S','S',' ',' '},
-         {' ',' ',' ',' '}},
-
-        {{' ',' ',' ',' '},
-         {'Z','Z',' ',' '},
-         {' ','Z','Z',' '},
-         {' ',' ',' ',' '}}
-};
-
-int x = 4;
-int y = 0;
-int b = 1;
-
-void gotoxy(int x, int y) {
-    COORD c = {x, y};
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
-}
-
-void boardDelBlock(){
-    for (int i = 0 ; i < 4 ; i++)
-        for (int j = 0 ; j < 4 ; j++)
-            if (blocks[b][i][j] != ' ' && y+j < HEIGHT)
-                board[y+i][x+j] = ' ';
-}
-
-void block2Board(){
-    for (int i = 0 ; i < 4 ; i++)
-        for (int j = 0 ; j < 4 ; j++)
-            if (blocks[b][i][j] != ' ' )
-                board[y+i][x+j] = blocks[b][i][j];
-}
-
-void initBoard(){
-    for (int i = 0 ; i < HEIGHT ; i++)
-        for (int j = 0 ; j < WIDTH ; j++)
-            if ((i==HEIGHT-1) || (j==0) || (j == WIDTH-1)) board[i][j] = '#';
-            else board[i][j] = ' ';
-}
-
-void draw(){
-    gotoxy(0,0);
-    for (int i = 0 ; i < HEIGHT ; i++, cout<<endl)
-        for (int j = 0 ; j < WIDTH ; j++)
-            cout<<board[i][j];
-}
-
-bool canMove(int dx, int dy){
-    for (int i = 0 ; i < 4 ; i++)
-        for (int j = 0 ; j < 4 ; j++)
-            if (blocks[b][i][j] != ' '){
-                int tx = x + j + dx;
-                int ty = y + i + dy;
-                if ( tx<1 || tx >= WIDTH-1 || ty >= HEIGHT-1) return false;
-                if ( board[ty][tx] != ' ') return false;
-            }
-    return true;
-}
-
-void animateLineClear(int line) {
-    // Thay đổi các ô trong hàng thành ký tự particle
-    for (int k = 1; k < WIDTH-1 ; k++ ) {
-        board[line][k] = '*'; // Ký tự nhấp nháy/particle
+        for (vector<char>& row : grid)
+            row.front() = row.back() = '#';
     }
-    draw();
-    _sleep(100); // Dừng ngắn để người dùng thấy hiệu ứng
-}
 
-void removeLine(){
-    int j;
+    void gotoxy(int x, int y) {
+        COORD c = {x, y};
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+    }
 
-    for (int i = HEIGHT - 2; i > 0 ; i-- ){
-        for (j = 0; j < WIDTH - 1 ; j++)
-            if (board[i][j] == ' ')
-                break;
+    void draw() {
+        gotoxy(0, 0);
 
-        if (j == WIDTH - 1){
+        for (int i = 0; i < HEIGHT; i++, cout << endl)
+            for (int j = 0; j < WIDTH; j++)
+                cout << grid[i][j];
+    }
+
+    void boardDeleteBlock(BaseBlock* currBlock) {
+        for (int i = 0; i < BLOCK_SIZE; i++)
+            for (int j = 0; j < BLOCK_SIZE; j++)
+                if (currBlock->shape[i][j] != ' ' && currBlock->y + j < HEIGHT)
+                    grid[currBlock->y + i][currBlock->x + j] = ' ';
+    }
+
+    void blockToBoard(BaseBlock* currBlock){
+        for (int i = 0 ; i < BLOCK_SIZE; i++)
+            for (int j = 0 ; j < BLOCK_SIZE; j++)
+                if (currBlock->shape[i][j] != ' ')
+                    grid[currBlock->y + i][currBlock->x + j] = currBlock->shape[i][j];
+    }
+
+    bool canMove(int dx, int dy, BaseBlock* currBlock) {
+        for (int i = 0; i < BLOCK_SIZE; i++)
+            for (int j = 0; j < BLOCK_SIZE; j++)
+                if (currBlock->shape[i][j] != ' ') {
+                    int tx = currBlock->x + j + dx;
+                    int ty = currBlock->y + i + dy;
+
+                    if (tx < 1
+                    ||  tx >= WIDTH - 1
+                    ||  ty >= HEIGHT - 1
+                    ||  grid[ty][tx] != ' ')
+                        return false;
+                }
+
+        return true;
+    }
+
+    void animateLineClear(int line) {
+        for (int k = 1; k < WIDTH - 1; k++)
+            grid[line][k] = '*';
+
+        draw();
+        _sleep(100);
+    }
+
+
+    bool removeLine(){
+        bool hasLineClear = false;
+
+        for (int i = HEIGHT - 2; i > 0; i--){
+            int j;
+
+            for (j = 0; j < WIDTH - 1; j++)
+                if (grid[i][j] == ' ')
+                    break;
+
+            if (j != WIDTH - 1)
+                continue;
+
             animateLineClear(i);
+            hasLineClear = true;
 
-            for (int ii = i; ii >0 ; ii-- )
-                for (int j = 0; j < WIDTH-1 ; j++ ) board[ii][j] = board[ii-1][j];
+            for (int ii = i; ii > 0; ii--)
+                for (int k = 0; k < WIDTH - 1; k++)
+                    grid[ii][k] = grid[ii - 1][k];
 
             i++;
             draw();
             _sleep(200);
         }
-    }
-}
 
-void increaseSpeed() {
-    if(gameSpeed > 50) {
-        gameSpeed -= 5;
+        return hasLineClear;
     }
-}
+};
 
-void hideCursor() {
-    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO info;
-    info.dwSize = 100;
-    info.bVisible = FALSE;
-    SetConsoleCursorInfo(consoleHandle, &info);
-}
+// ====================
+// TetrisGame Class
+// ====================
+class TetrisGame {
+private:
+    Board board;
+    BaseBlock* currBlock;
+    int gameSpeed;
+
+    void hideCursor() {
+        HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO info;
+        info.dwSize = 100;
+        info.bVisible = FALSE;
+        SetConsoleCursorInfo(consoleHandle, &info);
+    }
+
+    BaseBlock* createRandomBlock() {
+        int r = rand() % 7;
+
+        switch (r) {
+            case 0: return new BlockI();
+            case 1: return new BlockO();
+            case 2: return new BlockT();
+            case 3: return new BlockL();
+            case 4: return new BlockJ();
+            case 5: return new BlockS();
+            default : return new BlockZ();
+        }
+    }
+
+    void increaseSpeed() {
+        if (gameSpeed > MAX_GAME_SPEED)
+            gameSpeed -= D_SPEED_DECREASE;
+    }
+
+public:
+    TetrisGame() {
+        gameSpeed = DEFAULT_GAME_SPEED;
+        hideCursor();
+        system("cls");
+        currBlock = createRandomBlock();
+    }
+
+    void run() {
+        int timer = 0;
+
+        while (1){
+            board.boardDeleteBlock(currBlock);
+
+            if (kbhit()){
+                char c = getch();
+
+                if (c == 'a' && board.canMove(-1,0, currBlock)) currBlock->x--;
+                else if (c == 'd' && board.canMove( 1,0, currBlock)) currBlock->x++;
+                else if (c == 'x' && board.canMove( 0,1, currBlock)) currBlock->y++;
+                else if (c == 'w') currBlock->rotate(board.grid);
+                else if (c == 'q') break;
+            }
+
+            if (timer > gameSpeed) {
+                if (board.canMove(0,1, currBlock))
+                    currBlock->y++;
+                else {
+                    board.blockToBoard(currBlock);
+
+                    if (board.removeLine())
+                        increaseSpeed();
+
+                    delete currBlock;
+                    currBlock = createRandomBlock();
+                }
+
+                timer = 0;
+            }
+
+            board.blockToBoard(currBlock);
+            board.draw();
+
+            _sleep(50);
+            timer += 50;
+        }
+    }
+};
 
 int main() {
     srand(time(0));
-    b = rand() % 2;
-
-    hideCursor();
-    system("cls");
-
-    initBoard();
-    int timer = 0;
-
-    while (1){
-        boardDelBlock();
-
-        if (kbhit()){
-            char c = getch();
-            if (c=='a' && canMove(-1,0)) x--;
-            if (c=='d' && canMove( 1,0)) x++;
-            if (c=='x' && canMove( 0,1)) y++;
-            if (c=='w') rotateBlock();
-            if (c=='q') break;
-        }
-
-        if (timer > gameSpeed) {
-            if (canMove(0,1)) y++;
-            else {
-                block2Board();
-                removeLine();
-                increaseSpeed();
-                x = 5; y = 0; b = rand() % 2;
-            }
-
-            timer = 0;
-        }
-
-        block2Board();
-        draw();
-
-        _sleep(50);
-        timer += 50;
-    }
+    TetrisGame tetris;
+    tetris.run();
 
     return 0;
 }
