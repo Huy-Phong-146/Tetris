@@ -1,4 +1,4 @@
-# Đồ án cuối kỳ môn học SS006 - Kỹ năng nghề nghiệp: Thiết kế game Tetris
+# Đồ án cuối kỳ môn học SS004.Q12 - Kỹ năng nghề nghiệp: Thiết kế game Tetris
 Đây là đồ án cuối kỳ tái hiện lại trò chơi xếp gạch cổ điển (Tetris), được viết bằng ngôn ngữ C++
 
 # 🎮 Tetris Game Implementation - Computer Science Project
