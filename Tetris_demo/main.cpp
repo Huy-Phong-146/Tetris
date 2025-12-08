@@ -97,6 +97,7 @@ bool canMove(int dx, int dy){
     return true;
 }
 
+<<<<<<< HEAD
 void animateLineClear(int line) {
     // Thay đổi các ô trong hàng thành ký tự particle
     for (int k = 1; k < W-1 ; k++ ) {
@@ -104,6 +105,13 @@ void animateLineClear(int line) {
     }
     draw();
     _sleep(100); // Dừng ngắn để người dùng thấy hiệu ứng
+=======
+void increaseSpeed()
+{
+    if(gameSpeed > 50) {
+        gameSpeed -= 10;
+    }
+>>>>>>> origin/Speed_and_score
 }
 
 void removeLine(){
@@ -122,14 +130,18 @@ void removeLine(){
 
             i++;
             draw();
-            _sleep(200);
+            increaseSpeed();
+            _sleep(gameSpeed);
         }
+<<<<<<< HEAD
     }
 }
 
 void increaseSpeed() {
     if(gameSpeed > 50) {
         gameSpeed -= 5;
+=======
+>>>>>>> origin/Speed_and_score
     }
 }
 
@@ -202,9 +214,13 @@ int main() {
 
         block2Board();
         draw();
+<<<<<<< HEAD
 
         _sleep(50);
         timer += 50;
+=======
+        _sleep(gameSpeed);
+>>>>>>> origin/Speed_and_score
     }
 
     return 0;
