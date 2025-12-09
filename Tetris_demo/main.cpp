@@ -20,6 +20,7 @@ const char BORDER_BL  = (char)200;
 const char BORDER_BR  = (char)188;
 const char BORDER_TL  = (char)201;
 const char BORDER_TR  = (char)187;
+
 void gotoxy(int x, int y) {
     COORD c = {x, y};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
@@ -223,6 +224,7 @@ class TetrisGame {
 private:
     Board board;
     BaseBlock* currBlock;
+    BaseBlock* nextBlock;
     int gameSpeed;
     int score;
     int highestScore;
@@ -304,6 +306,26 @@ private:
         cout << BORDER_BR;
     }
 
+    void drawNextBlock() {
+        int xPos = WIDTH * 2 + 5;
+        int yPos = 11;
+
+        for(int i = 0; i < BLOCK_SIZE; i++) {
+            gotoxy(xPos + 9, yPos + 2 + i);
+            cout << "    ";
+        }
+
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            for (int j = 0; j < BLOCK_SIZE; j++) {
+                if (nextBlock->shape[i][j] != ' ') {
+                    gotoxy(xPos + 9 + j, yPos + 2 + i);
+                    cout << nextBlock->shape[i][j];
+                }
+            }
+        }
+    }
+
+
     void drawUI(bool isNewRecord = false) {
         int xPos = WIDTH * 2 + 5;
         int boxWidth = 22;
@@ -318,7 +340,10 @@ private:
         gotoxy(xPos + 2, 9);
         cout << highestScore;
 
-        int yControl = 18;
+        drawFrame(xPos, 12, boxWidth, 6, "NEXT BLOCK");
+        drawNextBlock();
+
+        int yControl = 19;
 
         drawFrame(xPos, yControl, boxWidth, 7, "CONTROLS");
         gotoxy(xPos + 2, yControl + 1);  cout << " A : Move Left";
@@ -333,7 +358,9 @@ public:
         gameSpeed = DEFAULT_GAME_SPEED;
         hideCursor();
         system("cls");
+
         currBlock = createRandomBlock();
+        nextBlock = createRandomBlock();
         score = 0;
         loadHighestScore();
         drawUI();
@@ -373,7 +400,10 @@ public:
                     }
 
                     delete currBlock;
-                    currBlock = createRandomBlock();
+                    currBlock = nextBlock;
+                    nextBlock = createRandomBlock();
+
+                    drawNextBlock();
                 }
 
                 timer = 0;
