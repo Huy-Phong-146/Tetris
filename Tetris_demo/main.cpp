@@ -250,7 +250,7 @@ private:
     }
 
     void loadHighestScore() {
-        ifstream file("higest_score.txt");
+        ifstream file("highest_score.txt");
 
         if (file.is_open()) {
             file >> highestScore;
@@ -268,45 +268,40 @@ private:
         }
     }
 
-    void checkHighScore() {
-        if (score > highestScore) {
-            highestScore = score; // Cập nhật biến
-            saveHighestScore();   // Lưu ngay lập tức vào file
-        }
+    bool checkHighScore() {
+        if (score <= highestScore)
+            return false;
+
+        highestScore = score;
+        saveHighestScore();
+        return true;
     }
 
-    void drawUI() {
-        int xPos = WIDTH + 5;
+    void drawUI(bool isNewRecord = false) {
+        int xPos = WIDTH * 2 + 5;
         int yPos = 2;
 
-        // Bảng Score
-        gotoxy(xPos, yPos);     cout << "== SCORE ======";
-        gotoxy(xPos, yPos + 1); cout << "|             |";
-        gotoxy(xPos, yPos + 2); cout << "===============";
+        gotoxy(xPos, yPos);     cout << "== SCORE ==============";
+        gotoxy(xPos, yPos + 1); cout << "|                     |";
+        gotoxy(xPos, yPos + 2); cout << "=======================";
+        gotoxy(xPos + 2, yPos + 1); cout << score;
 
-        // Bảng High Score (Mới)
-        gotoxy(xPos, yPos + 5); cout << "== HIGH SCORE =";
-        gotoxy(xPos, yPos + 6); cout << "|             |";
-        gotoxy(xPos, yPos + 7); cout << "===============";
+        if (isNewRecord) {
+            gotoxy(xPos, yPos + 5); cout << "== HIGH SCORE (NEW!) ==";
+        } else {
+            gotoxy(xPos, yPos + 5); cout << "== HIGH SCORE =========";
+        }
 
-        // Bảng Speed (Dời xuống dưới)
-        gotoxy(xPos, yPos + 10); cout << "== SPEED ======";
-        gotoxy(xPos, yPos + 11); cout << "|             |";
-        gotoxy(xPos, yPos + 12); cout << "===============";
+        gotoxy(xPos, yPos + 6); cout << "|                     |";
+        gotoxy(xPos, yPos + 7); cout << "=======================";
+        gotoxy(xPos + 2, yPos + 6); cout << highestScore;
 
-        // Hướng dẫn
-        gotoxy(xPos, yPos + 15); cout << "Controls:";
-        gotoxy(xPos, yPos + 16); cout << "A/D: Move";
-        gotoxy(xPos, yPos + 17); cout << "W: Rotate";
-        gotoxy(xPos, yPos + 18); cout << "X: Drop";
-        gotoxy(xPos, yPos + 19); cout << "Q: Quit";
-
-        // In giá trị
-        gotoxy(xPos + 2, yPos + 1);  cout << score;
-        gotoxy(xPos + 2, yPos + 6);  cout << highestScore;
-        gotoxy(xPos + 2, yPos + 11); cout << (DEFAULT_GAME_SPEED - gameSpeed) / 10;
+        gotoxy(xPos, yPos + 10); cout << "Controls:";
+        gotoxy(xPos, yPos + 11); cout << " A/D : Move";
+        gotoxy(xPos, yPos + 12); cout << " W   : Rotate";
+        gotoxy(xPos, yPos + 13); cout << " X   : Soft Drop";
+        gotoxy(xPos, yPos + 14); cout << " Q   : Quit Game";
     }
-
 public:
     TetrisGame() {
         gameSpeed = DEFAULT_GAME_SPEED;
@@ -314,6 +309,7 @@ public:
         system("cls");
         currBlock = createRandomBlock();
         score = 0;
+        loadHighestScore();
         drawUI();
     }
 
@@ -331,8 +327,8 @@ public:
                 else if (c == 'x' && board.canMove( 0,1, currBlock)) {
                     currBlock->y++;
                     score++;
-                    checkHighScore();
-                    drawUI();
+                    bool isNew = checkHighScore();
+                    drawUI(isNew);
                 } else if (c == 'w') currBlock->rotate(board.grid);
                 else if (c == 'q') break;
             }
@@ -344,9 +340,10 @@ public:
                     board.blockToBoard(currBlock);
 
                     if (board.removeLine()) {
+                        score += 30;
                         increaseSpeed();
-                        checkHighScore();
-                        drawUI();
+                        bool isNew = checkHighScore();
+                        drawUI(isNew);
                     }
 
                     delete currBlock;
