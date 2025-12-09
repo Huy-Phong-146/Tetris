@@ -218,6 +218,7 @@ class TetrisGame {
 private:
     Board board;
     BaseBlock* currBlock;
+    BaseBlock* nextBlock;
     int gameSpeed;
     int score;
     int highestScore;
@@ -277,6 +278,29 @@ private:
         return true;
     }
 
+    void drawNextBlock() {
+        int xPos = WIDTH * 2 + 5;
+        int yPos = 17;
+
+        gotoxy(xPos, yPos);     cout << "== NEXT BLOCK =========";
+
+        for(int i = 0; i < 4; i++) {
+            gotoxy(xPos + 5, yPos + 2 + i);
+            cout << "    ";
+        }
+
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            for (int j = 0; j < BLOCK_SIZE; j++) {
+                if (nextBlock->shape[i][j] != ' ') {
+                    gotoxy(xPos + 5 + j, yPos + 2 + i);
+                    cout << nextBlock->shape[i][j];
+                }
+            }
+        }
+
+        gotoxy(xPos, yPos + 7); cout << "=======================";
+    }
+
     void drawUI(bool isNewRecord = false) {
         int xPos = WIDTH * 2 + 5;
         int yPos = 2;
@@ -301,13 +325,17 @@ private:
         gotoxy(xPos, yPos + 12); cout << " W   : Rotate";
         gotoxy(xPos, yPos + 13); cout << " X   : Soft Drop";
         gotoxy(xPos, yPos + 14); cout << " Q   : Quit Game";
+
+        drawNextBlock();
     }
 public:
     TetrisGame() {
         gameSpeed = DEFAULT_GAME_SPEED;
         hideCursor();
         system("cls");
+
         currBlock = createRandomBlock();
+        nextBlock = createRandomBlock();
         score = 0;
         loadHighestScore();
         drawUI();
@@ -347,7 +375,10 @@ public:
                     }
 
                     delete currBlock;
-                    currBlock = createRandomBlock();
+                    currBlock = nextBlock;
+                    nextBlock = createRandomBlock();
+
+                    drawNextBlock();
                 }
 
                 timer = 0;
