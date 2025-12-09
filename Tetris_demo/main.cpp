@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <vector>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -12,6 +13,12 @@ using namespace std;
 #define DEFAULT_GAME_SPEED 200
 #define MAX_GAME_SPEED 50
 #define D_SPEED_DECREASE 10
+
+
+void gotoxy(int x, int y) {
+    COORD c = {x, y};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
 
 //=============================
 // BaseBlock Class and Concrete Classes
@@ -127,11 +134,6 @@ public:
             row.front() = row.back() = '#';
     }
 
-    void gotoxy(int x, int y) {
-        COORD c = {x, y};
-        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
-    }
-
     void draw() {
         gotoxy(0, 0);
 
@@ -217,6 +219,8 @@ private:
     Board board;
     BaseBlock* currBlock;
     int gameSpeed;
+    int score;
+    int highestScore;
 
     void hideCursor() {
         HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -245,12 +249,72 @@ private:
             gameSpeed -= D_SPEED_DECREASE;
     }
 
+    void loadHighestScore() {
+        ifstream file("higest_score.txt");
+
+        if (file.is_open()) {
+            file >> highestScore;
+            file.close();
+        } else
+            highestScore = 0;
+    }
+
+    void saveHighestScore() {
+        ofstream file("highest_score.txt");
+
+        if (file.is_open()) {
+            file << highestScore;
+            file.close();
+        }
+    }
+
+    void checkHighScore() {
+        if (score > highestScore) {
+            highestScore = score; // Cập nhật biến
+            saveHighestScore();   // Lưu ngay lập tức vào file
+        }
+    }
+
+    void drawUI() {
+        int xPos = WIDTH + 5;
+        int yPos = 2;
+
+        // Bảng Score
+        gotoxy(xPos, yPos);     cout << "== SCORE ======";
+        gotoxy(xPos, yPos + 1); cout << "|             |";
+        gotoxy(xPos, yPos + 2); cout << "===============";
+
+        // Bảng High Score (Mới)
+        gotoxy(xPos, yPos + 5); cout << "== HIGH SCORE =";
+        gotoxy(xPos, yPos + 6); cout << "|             |";
+        gotoxy(xPos, yPos + 7); cout << "===============";
+
+        // Bảng Speed (Dời xuống dưới)
+        gotoxy(xPos, yPos + 10); cout << "== SPEED ======";
+        gotoxy(xPos, yPos + 11); cout << "|             |";
+        gotoxy(xPos, yPos + 12); cout << "===============";
+
+        // Hướng dẫn
+        gotoxy(xPos, yPos + 15); cout << "Controls:";
+        gotoxy(xPos, yPos + 16); cout << "A/D: Move";
+        gotoxy(xPos, yPos + 17); cout << "W: Rotate";
+        gotoxy(xPos, yPos + 18); cout << "X: Drop";
+        gotoxy(xPos, yPos + 19); cout << "Q: Quit";
+
+        // In giá trị
+        gotoxy(xPos + 2, yPos + 1);  cout << score;
+        gotoxy(xPos + 2, yPos + 6);  cout << highestScore;
+        gotoxy(xPos + 2, yPos + 11); cout << (DEFAULT_GAME_SPEED - gameSpeed) / 10;
+    }
+
 public:
     TetrisGame() {
         gameSpeed = DEFAULT_GAME_SPEED;
         hideCursor();
         system("cls");
         currBlock = createRandomBlock();
+        score = 0;
+        drawUI();
     }
 
     void run() {
@@ -264,8 +328,12 @@ public:
 
                 if (c == 'a' && board.canMove(-1,0, currBlock)) currBlock->x--;
                 else if (c == 'd' && board.canMove( 1,0, currBlock)) currBlock->x++;
-                else if (c == 'x' && board.canMove( 0,1, currBlock)) currBlock->y++;
-                else if (c == 'w') currBlock->rotate(board.grid);
+                else if (c == 'x' && board.canMove( 0,1, currBlock)) {
+                    currBlock->y++;
+                    score++;
+                    checkHighScore();
+                    drawUI();
+                } else if (c == 'w') currBlock->rotate(board.grid);
                 else if (c == 'q') break;
             }
 
@@ -275,8 +343,11 @@ public:
                 else {
                     board.blockToBoard(currBlock);
 
-                    if (board.removeLine())
+                    if (board.removeLine()) {
                         increaseSpeed();
+                        checkHighScore();
+                        drawUI();
+                    }
 
                     delete currBlock;
                     currBlock = createRandomBlock();
