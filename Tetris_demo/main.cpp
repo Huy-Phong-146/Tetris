@@ -14,7 +14,12 @@ using namespace std;
 #define MAX_GAME_SPEED 50
 #define D_SPEED_DECREASE 10
 
-
+const char BORDER_V   = (char)186;
+const char BORDER_H   = (char)205;
+const char BORDER_BL  = (char)200;
+const char BORDER_BR  = (char)188;
+const char BORDER_TL  = (char)201;
+const char BORDER_TR  = (char)187;
 void gotoxy(int x, int y) {
     COORD c = {x, y};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
@@ -277,31 +282,52 @@ private:
         return true;
     }
 
-    void drawUI(bool isNewRecord = false) {
-        int xPos = WIDTH * 2 + 5;
-        int yPos = 2;
+    void drawFrame(int x, int y, int w, int h, string title) {
+        gotoxy(x, y);
+        cout << BORDER_TL;
+        for (int i = 0; i < w - 2; i++) cout << BORDER_H;
+        cout << BORDER_TR;
 
-        gotoxy(xPos, yPos);     cout << "== SCORE ==============";
-        gotoxy(xPos, yPos + 1); cout << "|                     |";
-        gotoxy(xPos, yPos + 2); cout << "=======================";
-        gotoxy(xPos + 2, yPos + 1); cout << score;
-
-        if (isNewRecord) {
-            gotoxy(xPos, yPos + 5); cout << "== HIGH SCORE (NEW!) ==";
-        } else {
-            gotoxy(xPos, yPos + 5); cout << "== HIGH SCORE =========";
+        if (!title.empty()) {
+            gotoxy(x + (w - title.length()) / 2, y); // Căn giữa tiêu đề
+            cout << " " << title << " ";
         }
 
-        gotoxy(xPos, yPos + 6); cout << "|                     |";
-        gotoxy(xPos, yPos + 7); cout << "=======================";
-        gotoxy(xPos + 2, yPos + 6); cout << highestScore;
+        for (int i = 1; i < h - 1; i++) {
+            gotoxy(x, y + i);         cout << BORDER_V;
+            gotoxy(x + w - 1, y + i); cout << BORDER_V;
+        }
 
-        gotoxy(xPos, yPos + 10); cout << "Controls:";
-        gotoxy(xPos, yPos + 11); cout << " A/D : Move";
-        gotoxy(xPos, yPos + 12); cout << " W   : Rotate";
-        gotoxy(xPos, yPos + 13); cout << " X   : Soft Drop";
-        gotoxy(xPos, yPos + 14); cout << " Q   : Quit Game";
+        gotoxy(x, y + h - 1);
+        cout << BORDER_BL;
+        for (int i = 0; i < w - 2; i++) cout << BORDER_H;
+        cout << BORDER_BR;
     }
+
+    void drawUI(bool isNewRecord = false) {
+        int xPos = WIDTH * 2 + 5;
+        int boxWidth = 22;
+
+        drawFrame(xPos, 2, boxWidth, 4, "SCORE");
+        gotoxy(xPos + 2, 4);
+        cout << score;
+
+        string highScoreTitle = isNewRecord ? "NEW RECORD!" : "HIGH SCORE";
+        drawFrame(xPos, 7, boxWidth, 4, highScoreTitle);
+
+        gotoxy(xPos + 2, 9);
+        cout << highestScore;
+
+        int yControl = 18;
+
+        drawFrame(xPos, yControl, boxWidth, 7, "CONTROLS");
+        gotoxy(xPos + 2, yControl + 1);  cout << " A : Move Left";
+        gotoxy(xPos + 2, yControl + 2);  cout << " D : Move Right";
+        gotoxy(xPos + 2, yControl + 3);  cout << " S : Soft Drop";
+        gotoxy(xPos + 2, yControl + 4);  cout << " W : Rotate";
+        gotoxy(xPos + 2, yControl + 5);  cout << " Q : Quit Game";
+    }
+
 public:
     TetrisGame() {
         gameSpeed = DEFAULT_GAME_SPEED;
