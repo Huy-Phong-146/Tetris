@@ -13,6 +13,12 @@ using namespace std;
 #define MAX_GAME_SPEED 50
 #define D_SPEED_DECREASE 10
 
+const char BLOCK_CHAR = (char)219;
+const char BORDER_V   = (char)186;
+const char BORDER_H   = (char)205;
+const char BORDER_BL  = (char)200;
+const char BORDER_BR  = (char)188;
+
 //=============================
 // BaseBlock Class and Concrete Classes
 //=============================
@@ -60,55 +66,55 @@ public:
 class BlockI : public BaseBlock {
 public:
     BlockI() {
-        shape[1][0] = 'I'; shape[1][1] = 'I'; shape[1][2] = 'I'; shape[1][3] = 'I';
+        shape[1][0] = shape[1][1] = shape[1][2] = shape[1][3] = BLOCK_CHAR;
     }
 };
 
 class BlockO : public BaseBlock {
 public:
     BlockO() {
-        shape[1][1] = 'O'; shape[1][2] = 'O';
-        shape[2][1] = 'O'; shape[2][2] = 'O';
+        shape[1][1] = shape[1][2] = BLOCK_CHAR;
+        shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
 };
 
 class BlockT : public BaseBlock {
 public:
     BlockT() {
-                           shape[1][1] = 'T';
-        shape[2][0] = 'T'; shape[2][1] = 'T'; shape[2][2] = 'T';
+                      shape[1][1] = BLOCK_CHAR;
+        shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
 };
 
 class BlockL : public BaseBlock {
 public:
     BlockL() {
-                                              shape[1][2] = 'L';
-        shape[2][0] = 'L'; shape[2][1] = 'L'; shape[2][2] = 'L';
+                                    shape[1][2] = BLOCK_CHAR;
+        shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
 };
 
 class BlockJ : public BaseBlock {
 public:
     BlockJ() {
-        shape[1][0] = 'J';
-        shape[2][0] = 'J'; shape[2][1] = 'J'; shape[2][2] = 'J';
+        shape[1][0] = BLOCK_CHAR;
+        shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
 };
 
 class BlockS : public BaseBlock {
 public:
     BlockS() {
-                           shape[1][1] = 'S'; shape[1][2] = 'S';
-        shape[2][0] = 'S'; shape[2][1] = 'S';
+                      shape[1][1] = shape[1][2] = BLOCK_CHAR;
+        shape[2][0] = shape[2][1] = BLOCK_CHAR;
     }
 };
 
 class BlockZ : public BaseBlock {
 public:
     BlockZ() {
-        shape[1][0] = 'Z'; shape[1][1] = 'Z';
-                           shape[2][1] = 'Z'; shape[2][2] = 'Z';
+        shape[1][0] = shape[1][1] = BLOCK_CHAR;
+                      shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
 };
 
@@ -121,10 +127,13 @@ public:
 
     Board() {
         grid = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
-        grid.emplace_back(vector<char>(WIDTH, '#'));
 
         for (vector<char>& row : grid)
-            row.front() = row.back() = '#';
+            row.front() = row.back() = BORDER_V;
+
+        grid.emplace_back(vector<char>(WIDTH, BORDER_H));
+        grid.back().front() = BORDER_BL;
+        grid.back().back()  = BORDER_BR;
     }
 
     void gotoxy(int x, int y) {
@@ -133,11 +142,11 @@ public:
     }
 
     void draw() {
-        gotoxy(0, 0);
+        gotoxy(0,0);
 
         for (int i = 0; i < HEIGHT; i++, cout << endl)
             for (int j = 0; j < WIDTH; j++)
-                cout << grid[i][j];
+                cout << grid[i][j] << grid[i][j];
     }
 
     void boardDeleteBlock(BaseBlock* currBlock) {
@@ -192,6 +201,10 @@ public:
 
             if (j != WIDTH - 1)
                 continue;
+
+            // Am thanh khi Tang diem
+            Beep(1200, 50);
+            Beep(1600, 50);
 
             animateLineClear(i);
             hasLineClear = true;
@@ -262,10 +275,26 @@ public:
             if (kbhit()){
                 char c = getch();
 
-                if (c == 'a' && board.canMove(-1,0, currBlock)) currBlock->x--;
-                else if (c == 'd' && board.canMove( 1,0, currBlock)) currBlock->x++;
-                else if (c == 'x' && board.canMove( 0,1, currBlock)) currBlock->y++;
-                else if (c == 'w') currBlock->rotate(board.grid);
+                // Qua trai
+                if (c == 'a' && board.canMove(-1,0, currBlock)) {
+                    currBlock->x--;
+                    Beep(400, 30);
+                }
+                // Qua phai
+                else if (c == 'd' && board.canMove( 1,0, currBlock)) {
+                    currBlock->x++;
+                    Beep(400, 30);
+                }
+                // Di chuyen xuong nhanh
+                else if (c == 'x' && board.canMove( 0,1, currBlock)) {
+                    currBlock->y++;
+                    Beep(450, 30);
+                }
+                // Xoay
+                else if (c == 'w') {
+                    currBlock->rotate(board.grid);
+                    Beep(600, 30);
+                }
                 else if (c == 'q') break;
             }
 
@@ -273,6 +302,8 @@ public:
                 if (board.canMove(0,1, currBlock))
                     currBlock->y++;
                 else {
+
+                    Beep(200, 50); // Them am thanh khi dap dat
                     board.blockToBoard(currBlock);
 
                     if (board.removeLine())
@@ -280,6 +311,12 @@ public:
 
                     delete currBlock;
                     currBlock = createRandomBlock();
+
+                    // Them am thanh, thoat vong lap game khi Game Over
+                    if (!board.canMove(0, 0, currBlock)) {
+                        Beep(300, 800);
+                        break;
+                    }
                 }
 
                 timer = 0;
