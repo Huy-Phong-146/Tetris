@@ -1,22 +1,85 @@
-### AL ###
-#Template for AL projects for Dynamics 365 Business Central
-#launch.json folder
-.vscode/
-#Cache folder
-.alcache/
-#Symbols folder
-.alpackages/
-#Snapshots folder
-.snapshots/
-#Testing Output folder
-.output/
-#Extension App-file
+# ----------------------------------------------------------------------
+# 1. C++ Compiled Files (File biên dịch - BẮT BUỘC)
+# ----------------------------------------------------------------------
+# File thực thi (Executable)
+*.exe
+*.out
 *.app
-#Rapid Application Development File
-rad.json
-#Translation Base-file
-*.g.xlf
-#License-file
-*.flf
-#Test results file
-TestResults.xml
+
+# File Object (File trung gian)
+*.o
+*.obj
+
+# Thư viện liên kết (Libraries)
+*.dll
+*.lib
+*.so
+*.dylib
+*.a
+
+# ----------------------------------------------------------------------
+# 2. Build Directories (Thư mục chứa file rác khi build)
+# ----------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+build/
+dist/
+x64/
+x86/
+
+# ----------------------------------------------------------------------
+# 3. Game Data & Logs (Dữ liệu cá nhân của người chơi)
+# ----------------------------------------------------------------------
+# File lưu điểm số
+high_score.txt
+highest_score.txt
+leaderboard.txt
+
+# File log lỗi (nếu có)
+*.log
+
+# ----------------------------------------------------------------------
+# 4. Code::Blocks Specific (Cấu hình IDE)
+# ----------------------------------------------------------------------
+# File lưu trạng thái cửa sổ làm việc (mỗi máy mỗi khác -> XÓA)
+*.layout
+*.depend
+
+# Giữ lại file .cbp (Project file) để người khác mở được code
+# !*.cbp 
+
+# ----------------------------------------------------------------------
+# 5. Visual Studio Code Specific
+# ----------------------------------------------------------------------
+# Thư mục cấu hình của VS Code
+.vscode/
+
+# Nếu bạn muốn share cấu hình chuẩn cho team thì bỏ comment 3 dòng dưới:
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/extensions.json
+
+# Lịch sử code cục bộ của VS Code
+.history/
+
+# ----------------------------------------------------------------------
+# 6. Windows / OS System Files (File rác hệ điều hành)
+# ----------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS (Đề phòng bạn bè dùng Mac tải về)
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ----------------------------------------------------------------------
+# 7. Backup Files (File tạm thời)
+# ----------------------------------------------------------------------
+*.bak
+*.tmp
+*~
