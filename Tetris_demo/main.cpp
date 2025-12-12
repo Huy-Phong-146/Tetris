@@ -116,6 +116,28 @@ void showHighScore() {
 //=============================
 
 
+//Thêm chức năng dừng trong trận
+int showPauseMenu() {
+    system("cls");
+    int x = 10, y = 5, w = 40, h = 10;
+
+    drawMenuFrame(x, y, w, h, "PAUSE");
+    gotoxy(x + 4, y + 3); cout << "1. Resume";
+        gotoxy(x + 4, y + 4); cout << "2. Restart";
+        gotoxy(x + 4, y + 5); cout << "3. Quit";
+
+        gotoxy(x + 4, y + 7); cout << "Enter your choice: ";
+
+    char c;
+    while (true) {
+        c = _getch();
+        if (c == '1') return 1;
+        if (c == '2') return 2;
+        if (c == '3') return 3;
+    }
+}
+//
+
 //=============================
 // BaseBlock Class and Concrete Classes
 //=============================
@@ -477,6 +499,25 @@ public:
                     drawUI(isNew);
                 } else if (c == 'w') currBlock->rotate(board.grid);
                 else if (c == 'q') break;
+
+                else if (c == 'p' || c == 'P') {
+                    int choice = showPauseMenu();
+
+                    if (choice == 1) {
+                        system("cls");
+                        board.draw();  // Resume
+                        drawUI(checkHighScore());
+                    }
+                    else if (choice == 2) {
+                        system("cls");
+                        TetrisGame newGame; // tạo game mới
+                        newGame.run();
+                        return;
+                    }
+                    else if (choice == 3) {
+                        return;       // Exit
+                    }
+                }
             }
 
             if (timer > gameSpeed) {
