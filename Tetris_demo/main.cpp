@@ -340,7 +340,7 @@ private:
             default : return new BlockZ();
         }
     }
-
+    
     void increaseSpeed() {
         if (gameSpeed > MAX_GAME_SPEED)
             gameSpeed -= D_SPEED_DECREASE;
@@ -459,6 +459,36 @@ public:
         drawUI();
     }
 
+    // Hiệu ứng game over
+    void gameOverEffect() {
+        // Hiệu ứng rơi sao như cũ
+        for (int i = HEIGHT - 2; i >= 0; i--) {
+            for (int j = 1; j < WIDTH - 1; j++) {
+                board.grid[i][j] = '*';
+            }
+            board.draw();
+            _sleep(40);
+        }
+
+        _sleep(300);
+        system("cls");
+
+        // === Vẽ khung GAME OVER ===
+        int x = 10, y = 5, w = 40, h = 10;
+
+        drawMenuFrame(x, y, w, h, "GAME OVER");
+
+        // In dòng thông báo
+        gotoxy(x + 8, y + 4);
+        cout << "Your Score: " << score;
+
+        gotoxy(x + 8, y + 6);
+        cout << "Press any key to return...";
+
+        getch();
+    }
+
+
     void run() {
         int timer = 0;
 
@@ -495,6 +525,11 @@ public:
                     delete currBlock;
                     currBlock = nextBlock;
                     nextBlock = createRandomBlock();
+
+                    if (!board.canMove(0, 0, currBlock)) {
+                        gameOverEffect();
+                        break;
+                    }
 
                     drawNextBlock();
                 }
