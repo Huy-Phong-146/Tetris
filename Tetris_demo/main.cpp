@@ -27,6 +27,96 @@ void gotoxy(int x, int y) {
 }
 
 //=============================
+// Thêm menu bao gồm :
+// 1.Bắt đầu game
+// 2.Xem highscore
+// 3.Thoát
+void drawMenuFrame(int x, int y, int w, int h, string title = "") {
+    gotoxy(x, y);
+    cout << (char)201;    
+    for (int i = 0; i < w - 2; i++) cout << (char)205;
+    cout << (char)187;
+
+    if (!title.empty()) {
+        gotoxy(x + (w - title.length()) / 2, y);
+        cout << " " << title << " ";
+    }
+
+    for (int i = 1; i < h - 1; i++) {
+        gotoxy(x, y + i);         cout << (char)186;
+        gotoxy(x + w - 1, y + i); cout << (char)186;
+    }
+
+    gotoxy(x, y + h - 1);
+    cout << (char)200;
+    for (int i = 0; i < w - 2; i++) cout << (char)205;
+    cout << (char)188;
+}// dùng lại hàm vẽ khung trong Class Tetris game
+
+
+int menu() {
+    while (true) {
+        system("cls");
+
+        int x = 10, y = 3, w = 40, h = 10;
+
+        drawMenuFrame(x, y, w, h, "MENU");
+
+        gotoxy(x + 4, y + 3); cout << "1. Start Game";
+        gotoxy(x + 4, y + 4); cout << "2. View High Score";
+        gotoxy(x + 4, y + 5); cout << "3. Quit";
+
+        gotoxy(x + 4, y + 7); cout << "Enter your choice: ";
+
+        int c;
+        cin >> c;
+        if (c >= 1 && c <= 3) return c;
+    }
+}
+
+//Chọn chế độ chơi sau khi chọn option Start Game
+int chooseMode() {
+    while (true) {
+        system("cls");
+
+        int x = 10, y = 5, w = 40, h = 10;
+
+        drawMenuFrame(x, y, w, h, "SELECT MODE");
+
+        gotoxy(x + 4, y + 3); cout << "1. Normal Mode";
+        gotoxy(x + 4, y + 4); cout << "2. Hard Mode";
+
+        gotoxy(x + 4, y + 7); cout << "Enter your choice: ";
+
+        int mode;
+        cin >> mode;
+        if (mode == 1 || mode == 2) return mode;
+    }
+}
+
+// Show điểm cao khi chọn option View High Score
+void showHighScore() {
+    system("cls");
+
+    ifstream file("highest_score.txt");
+    int hs = 0;
+    if (file.is_open()) file >> hs;
+
+    int x = 10, y = 5, w = 40, h = 10;
+
+    drawMenuFrame(x, y, w, h, "HIGH SCORE");
+
+    gotoxy(x + 4, y + 4);
+    cout << "Highest Score: " << hs;
+
+    gotoxy(x + 4, y + 7);
+    cout << "Press any key to return...";
+    getch();  
+}
+//=============================
+
+
+//=============================
 // BaseBlock Class and Concrete Classes
 //=============================
 class BaseBlock {
@@ -354,8 +444,11 @@ private:
     }
 
 public:
-    TetrisGame() {
-        gameSpeed = DEFAULT_GAME_SPEED;
+    //Sửa constructor truyền vào tham số để chọn chế độ chơi
+    TetrisGame(int mode = 1) {
+        if (mode == 1) gameSpeed = DEFAULT_GAME_SPEED;   // chế độ thường
+        else gameSpeed = 120;                            // chế độ khó
+
         hideCursor();
         system("cls");
 
@@ -418,10 +511,27 @@ public:
     }
 };
 
+void runProgram() {
+    while (true) {
+        int option = menu();
+
+        if (option == 1) {
+            int mode = chooseMode();
+            TetrisGame tetris(mode);
+            tetris.run();
+        }
+        else if (option == 2) {
+            showHighScore();
+        }
+        else if (option == 3) {
+            break;
+        }
+    }
+}
+
 int main() {
     srand(time(0));
-    TetrisGame tetris;
-    tetris.run();
+    runProgram();
 
     return 0;
 }
