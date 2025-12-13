@@ -27,14 +27,22 @@ const char SPACE_CHAR = (char)32;
 // Thêm màu cho các khối
 //=========================
 enum Color {
-    WHITE = 7,
-    CYAN = 11,    // Block I
-    YELLOW = 14,  // Block O
-    PURPLE = 13,  // Block T
-    ORANGE = 12,  // Block L
-    BLUE = 9,     // Block J
-    GREEN = 10,   // Block S
-    RED = 12      // Block Z
+    BLACK = 0,
+    DARK_BLUE = 1,
+    DARK_GREEN = 2,
+    DARK_CYAN = 3,
+    DARK_RED = 4,
+    DARK_MAGENTA = 5,
+    BROWN = 6,
+    LIGHT_GRAY = 7,
+    DARK_GRAY = 8,
+    BLUE = 9,
+    GREEN = 10,
+    CYAN = 11,
+    RED = 12,
+    PURPLE = 13,
+    YELLOW = 14,
+    WHITE = 15
 };
 
 
@@ -49,7 +57,11 @@ void hideCursor() {
     info.dwSize = 100;
     info.bVisible = FALSE;
     SetConsoleCursorInfo(consoleHandle, &info);
-   }
+}
+
+void setColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
 
 void drawFrame(int x, int y, int w, int h, string title) {
     gotoxy(x, y);
@@ -161,7 +173,7 @@ public:
 
 class BlockL : public BaseBlock {
 public:
-    BlockL() : BaseBlock(ORANGE) {
+    BlockL() : BaseBlock(RED) {
                                     shape[1][2] = BLOCK_CHAR;
         shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
@@ -213,18 +225,17 @@ public:
 
     void draw() {
         gotoxy(0,0);
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
         for (int i = 0; i < HEIGHT; i++, cout << endl) {
-            SetConsoleTextAttribute (hConsole, WHITE);
+            setColor(WHITE);
             cout << grid[i][0];
 
             for (int j = 1; j < WIDTH - 1; j++) {
-                SetConsoleTextAttribute(hConsole, colorGrid[i][j]);
+                setColor(colorGrid[i][j]);
                 cout << grid[i][j] << grid[i][j];
             }
 
-            SetConsoleTextAttribute (hConsole, WHITE);
+            setColor(WHITE);
             cout << grid[i][WIDTH - 1];
         }
     }
@@ -373,12 +384,11 @@ private:
         int yPos = 11;
 
         for(int i = 0; i < BLOCK_SIZE; i++) {
-            gotoxy(xPos + 9, yPos + 2 + i);
-            cout << "    ";
+            gotoxy(xPos + 8, yPos + 2 + i);
+            cout << "        ";
         }
 
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute (hConsole, nextBlock->blockColor);
+        setColor(nextBlock->blockColor);
 
         for (int i = 0; i < BLOCK_SIZE; i++) {
             for (int j = 0; j < BLOCK_SIZE; j++) {
@@ -387,7 +397,7 @@ private:
             }
         }
 
-        SetConsoleTextAttribute (hConsole, WHITE);
+        setColor(WHITE);
     }
 
 
@@ -421,8 +431,6 @@ private:
     }
 
     void gameOverEffect() {
-
-
         for (int i = HEIGHT - 2; i >= 0; i--) {
             for (int j = 1; j < WIDTH - 1; j++) {
                 board.grid[i][j] = '*';
@@ -495,7 +503,6 @@ public:
             if (kbhit()){
                 char c = getch();
                 c = tolower(c);
-
 
                 if (c == 'a' && board.canMove(-1,0, currBlock)) {
                     currBlock->x--;
@@ -577,6 +584,104 @@ public:
 };
 
 
+// ====================
+// Intro Class
+// ====================
+class IntroScene {
+private:
+    const vector<string> BIG_LOGO = {
+        // Dòng 1: "████████╗███████╗████████╗██████╗ ██╗███████╗"
+        "\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xBB \xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB",
+
+        // Dòng 2: "╚══██╔══╝██╔════╝╚══██╔══╝██╔══██╗██║██╔════╝"
+        "\xC8\xCD\xCD\xDB\xDB\xC9\xCD\xCD\xBC\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\xC8\xCD\xCD\xDB\xDB\xC9\xCD\xCD\xBC\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC",
+
+        // Dòng 3: "   ██║   █████╗     ██║   ██████╔╝██║███████╗"
+        "   \xDB\xDB\xBA   \xDB\xDB\xDB\xDB\xDB\xBB     \xDB\xDB\xBA   \xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB",
+
+        // Dòng 4: "   ██║   ██╔══╝     ██║   ██╔══██╗██║╚════██║"
+        "   \xDB\xDB\xBA   \xDB\xDB\xC9\xCD\xCD\xBC     \xDB\xDB\xBA   \xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xDB\xDB\xBA\xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA",
+
+        // Dòng 5: "   ██║   ███████╗   ██║   ██║  ██║██║███████║"
+        "   \xDB\xDB\xBA   \xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB   \xDB\xDB\xBA   \xDB\xDB\xBA  \xDB\xDB\xBA\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA",
+
+        // Dòng 6: "   ╚═╝   ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚══════╝"
+        "   \xC8\xCD\xBC   \xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC   \xC8\xCD\xBC   \xC8\xCD\xBC  \xC8\xCD\xBC\xC8\xCD\xBC\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC"
+    };
+
+    void drawLogo(int x, int y, int color) {
+        setColor(color);
+
+        for (int i = 0; i < BIG_LOGO.size(); i++) {
+            gotoxy(x, y + i);
+            cout << BIG_LOGO[i];
+        }
+    }
+
+    void drawLoadingBar(int x, int y, int width, int percent) {
+        gotoxy(x, y);
+
+        setColor(WHITE);
+        cout << "[";
+
+        int bars = (width * percent) / 100;
+
+        setColor(GREEN);
+        for (int i = 0; i < bars; i++) cout << BLOCK_CHAR;
+
+        setColor(WHITE);
+        for (int i = bars; i < width; i++) cout << " ";
+
+        cout << "] " << percent << "%";
+    }
+
+public:
+    void run() {
+        system("cls");
+        int startX = 10;
+        int startY = 5;
+
+        vector<int> sequence = {
+            CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, RED
+        };
+
+        int idx = 0;
+        int frame = 0;
+
+        while (!_kbhit()) {
+            int currentColor = sequence[idx];
+            drawLogo(startX, startY, currentColor);
+
+            if (frame % 2 == 0)
+                setColor(WHITE);
+            else
+                setColor(DARK_GRAY);
+
+            gotoxy(startX + 9, startY + 8);
+            cout << ">> PRESS ANY KEY TO START <<";
+
+            idx = (idx + 1) % sequence.size();
+
+            frame++;
+            Sleep(400);
+        }
+
+        _getch();
+
+        system("cls");
+        drawLogo(startX, startY, WHITE);
+
+        for (int i = 0; i <= 100; i += 4) {
+            drawLoadingBar(startX + 7, startY + 8, 30, i);
+            Sleep(30);
+        }
+
+        Sleep(500);
+        setColor(LIGHT_GRAY);
+        system("cls");
+    }
+};
+
 class GameManager {
 private:
     int menu() {
@@ -637,6 +742,9 @@ public:
     void runProgram() {
         hideCursor();
 
+        IntroScene intro;
+        intro.run();
+
         while (true) {
             int option = menu();
 
@@ -661,7 +769,6 @@ public:
         gotoxy(0, HEIGHT);
     }
 };
-
 
 int main() {
     SetConsoleOutputCP(437);
