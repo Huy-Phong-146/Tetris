@@ -315,6 +315,15 @@ public:
                     currBlock->rotate(board.grid);
                     Beep(600, 30);
                 }
+                else if (c == ' ') { // HARD DROP
+    while (board.canMove(0, 1, currBlock)) {
+        currBlock->y++;
+    }
+
+    // Ép timer để khối được đặt ngay lập tức
+    timer = gameSpeed + 1;
+    Beep(800, 50);
+}
                 else if (c == 'q') break;
             }
 
