@@ -37,30 +37,50 @@ public:
     virtual ~BaseBlock() {}
 
     void rotate(const vector<vector<char>>& grid) {
-        vector<vector<char>> tmp = shape;
-        vector<vector<char>> rot = vector<vector<char>>(BLOCK_SIZE, vector<char>(BLOCK_SIZE, ' '));
+    vector<vector<char>> old = shape;
+    vector<vector<char>> rot(BLOCK_SIZE, vector<char>(BLOCK_SIZE, ' '));
 
-        for (int i = 0; i < BLOCK_SIZE; i++)
-            for (int j = 0; j < BLOCK_SIZE; j++)
-                rot[j][BLOCK_SIZE - i - 1] = tmp[i][j];
+    // Xoay 90 độ
+    for (int i = 0; i < BLOCK_SIZE; i++)
+        for (int j = 0; j < BLOCK_SIZE; j++)
+            rot[j][BLOCK_SIZE - i - 1] = old[i][j];
 
-        for (int i = 0; i < BLOCK_SIZE; i++)
+    // Các offset wall-kick (X, Y)
+    int kickX[] = {0, -1, 1, -2, 2};
+    int kickY[] = {0,  0, 0,  0, 0};
+
+    for (int k = 0; k < 5; k++) {
+        int nx = x + kickX[k];
+        int ny = y + kickY[k];
+
+        bool canRotate = true;
+
+        for (int i = 0; i < BLOCK_SIZE && canRotate; i++) {
             for (int j = 0; j < BLOCK_SIZE; j++) {
                 if (rot[i][j] == ' ')
                     continue;
 
-                int tx = x + j;
-                int ty = y + i;
+                int tx = nx + j;
+                int ty = ny + i;
 
                 if (tx < 1
                  || tx >= WIDTH - 1
                  || ty >= HEIGHT - 1
-                 || grid[ty][tx] != ' ')
-                    return;
+                 || grid[ty][tx] != ' ') {
+                    canRotate = false;
+                    break;
+                }
+            }
         }
 
-        shape = rot;
+        if (canRotate) {
+            x = nx;
+            y = ny;
+            shape = rot;
+            return;
+        }
     }
+}
 };
 
 class BlockI : public BaseBlock {
