@@ -4,6 +4,7 @@
 #include <vector>
 #include <ctime>
 #include <fstream>
+#include <thread>
 
 using namespace std;
 
@@ -61,7 +62,7 @@ void drawFrame(int x, int y, int w, int h, string title) {
     cout << BORDER_TR;
 
     if (!title.empty()) {
-        gotoxy(x + (w - title.length()) / 2, y); // Căn giữa tiêu đề
+        gotoxy(x + (w - title.length()) / 2, y);
         cout << " " << title << " ";
     }
 
@@ -76,6 +77,11 @@ void drawFrame(int x, int y, int w, int h, string title) {
     cout << BORDER_BR;
 }
 
+void playSound(int freq, int duration) {
+    thread([=]() {
+        Beep(freq, duration);
+    }).detach();
+}
 //=============================
 // BaseBlock Class and Concrete Classes
 //=============================
@@ -277,7 +283,7 @@ public:
 
         draw();
         _sleep(50);
-        Beep(1000, 30);
+        playSound(1000, 700);
 
         for (int i = 1; i < 4; i++) {
             for (int k = 1; k < WIDTH - 1; k++) {
@@ -304,8 +310,8 @@ public:
             if (j != WIDTH - 1)
                 continue;
 
-            Beep(1200, 50);
-            Beep(1600, 50);
+            playSound(1200, 50);
+            playSound(1600, 50);
 
             animateLineClear(i);
             hasLineClear = true;
@@ -430,7 +436,7 @@ private:
         gotoxy(xPos + 2, yControl + 1);  cout << "A     : Move Left";
         gotoxy(xPos + 2, yControl + 2);  cout << "D     : Move Right";
         gotoxy(xPos + 2, yControl + 3);  cout << "S     : Soft Drop";
-        gotoxy(xPos + 2, yControl + 4);  cout << "SPACE : HARD Drop";
+        gotoxy(xPos + 2, yControl + 4);  cout << "SPACE : Hard Drop";
         gotoxy(xPos + 2, yControl + 5);  cout << "W     : Rotate";
         gotoxy(xPos + 2, yControl + 6);  cout << "P     : Pause Game";
         gotoxy(xPos + 2, yControl + 7);  cout << "Q     : Quit Game";
@@ -442,8 +448,8 @@ private:
                 if (board.grid[i][j] != ' ')
                     board.colorGrid[i][j] = DARK_GRAY;
 
-        Beep(300, 300); // Âm thanh buồn thảm
-        _sleep(500);
+        playSound(300, 500);
+        _sleep(1000);
 
         for (int i = HEIGHT - 2; i >= 0; i--) {
             for (int j = 1; j < WIDTH - 1; j++) {
@@ -453,8 +459,8 @@ private:
 
             board.draw();
 
-            Beep(600 - (i * 20), 30);
-            _sleep(20);
+            playSound(600 - (i * 20), 300);
+            _sleep(40);
         }
 
         _sleep(500);
@@ -520,16 +526,15 @@ public:
                 char c = getch();
                 c = tolower(c);
 
-
                 if (c == 'a' && board.canMove(-1,0, currBlock)) {
                     currBlock->x--;
-                    Beep(400, 30);
+                    playSound(400, 700);
                 } else if (c == 'd' && board.canMove( 1,0, currBlock)) {
                     currBlock->x++;
-                    Beep(400, 30);
+                    playSound(400, 700);
                 } else if (c == 's' && board.canMove( 0,1, currBlock)) {
                     currBlock->y++;
-                    Beep(450, 30);
+                    playSound(450, 700);
                     score++;
                     bool isNew = checkHighScore();
                     drawUI(isNew);
@@ -538,10 +543,10 @@ public:
                         currBlock->y++;
 
                     timer = gameSpeed + 1;
-                    Beep(800, 50);
+                    playSound(800, 700);
                 } else if (c == 'w') {
                     currBlock->rotate(board.grid);
-                    Beep(600, 30);
+                    playSound(600, 700);
                 } else if (c == 'q') {
                     return false;
                 } else if (c == 'p') {
@@ -563,7 +568,7 @@ public:
                 if (board.canMove(0,1, currBlock))
                     currBlock->y++;
                 else {
-                    Beep(200, 50);
+                    playSound(200, 50);
                     board.blockToBoard(currBlock);
 
                     if (board.removeLine()) {
@@ -578,7 +583,7 @@ public:
                     nextBlock = createRandomBlock();
 
                     if (!board.canMove(0, 0, currBlock)) {
-                        Beep(300, 800);
+                        playSound(300, 800);
                         gameOverEffect();
                         return false;
                     }
