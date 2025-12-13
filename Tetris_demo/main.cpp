@@ -22,6 +22,63 @@ const char BORDER_BL  = (char)200;
 const char BORDER_BR  = (char)188;
 const char BORDER_TL  = (char)201;
 const char BORDER_TR  = (char)187;
+// cấu trúc chứa các số để đến ngược
+const vector<string> sThree = {
+    " .----------------. ",
+    "| .--------------. |",
+    "| |    ______    | |",
+    "| |   / ____ `.  | |",
+    "| |   `'  __) |  | |",
+    "| |   _  |__ '.  | |",
+    "| |  | \\____) |  | |",
+    "| |   \\______.'  | |",
+    "| |              | |",
+    "| '--------------' |",
+    " '----------------' "
+};
+
+const vector<string> sTwo = {
+    " .----------------. ",
+    "| .--------------. |",
+    "| |    _____     | |",
+    "| |   / ___ `.   | |",
+    "| |  |_/___) |   | |",
+    "| |   .'____.'   | |",
+    "| |  / /____     | |",
+    "| |  |_______|   | |",
+    "| |              | |",
+    "| '--------------' |",
+    " '----------------' "
+};
+
+const vector<string> sOne = {
+    " .----------------. ",
+    "| .--------------. |",
+    "| |     __       | |",
+    "| |    /  |      | |",
+    "| |    `| |      | |",
+    "| |     | |      | |",
+    "| |    _| |_     | |",
+    "| |   |_____|    | |",
+    "| |              | |",
+    "| '--------------' |",
+    " '----------------' "
+};
+
+const vector<string> sReady = {
+    " .----------------.  .----------------.  .----------------.  .----------------.  .----------------. ",
+    "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |",
+    "| |    _______   | || |  _________   | || |      __      | || |  _______     | || |  _________   | |",
+    "| |   /  ___  |  | || | |  _   _  |  | || |     /  \\     | || | |_   __ \\    | || | |  _   _  |  | |",
+    "| |  |  (__ \\_|  | || | |_/ | | \\_|  | || |    / /\\ \\    | || |   | |__) |   | || | |_/ | | \\_|  | |",
+    "| |   '.___`-.   | || |     | |      | || |   / ____ \\   | || |   |  __ /    | || |     | |      | |",
+    "| |  |`\\____) |  | || |    _| |_     | || | _/ /    \\ \\_ | || |  _| |  \\ \\_  | || |    _| |_     | |",
+    "| |  |_______.'  | || |   |_____|    | || ||____|  |____|| || | |____| |___| | || |   |_____|    | |",
+    "| |              | || |              | || |              | || |              | || |              | |",
+    "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |",
+    " '----------------'  '----------------'  '----------------'  '----------------'  '----------------' "
+};
+const vector<vector<string>> sCountDown = { sThree, sTwo, sOne, sReady };
 
 
 //=============================
@@ -44,6 +101,44 @@ LIGHT_GRAY = 7,
 void gotoxy(int x, int y) {
     COORD c = {x, y};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+//set màu cho chữ
+void setColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+// Vẽ đếm ngược ra màn hình
+void drawCountDownFrame(const vector<string>& frame, int startX, int startY, bool blink = false) {
+    int tMax = blink ? 2 : 1; // nhấp nháy 2 lần nếu blink
+    for (int t = 0; t < tMax; t++) {
+        if (blink) {
+            setColor((t % 2 == 0) ?
+                     FOREGROUND_RED | FOREGROUND_INTENSITY :
+                     FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+        }
+
+        for (int i = 0; i < frame.size(); i++) {
+            gotoxy(startX, startY + i);
+            cout << frame[i];
+        }
+
+        if (blink) Sleep(300); // nhấp nháy
+    }
+
+    // reset màu
+    setColor(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+}
+
+void runCountDown() {
+    int x = 10, y = 5;
+
+    for (int i = 0; i < sCountDown.size(); i++) {
+        system("cls");
+        bool blink = (i < 3); // chỉ 3,2,1 nhấp nháy
+        drawCountDownFrame(sCountDown[i], x, y, blink);
+        _sleep(800); // giữ frame
+    }
+
+    system("cls");
 }
 
 void hideCursor() {
@@ -673,6 +768,7 @@ public:
                 bool playAgain = false;
 
                 do {
+                    runCountDown(); // chạy ngay sau khi chọn bắt đầu chơi
                     TetrisGame tetris(mode);
                     playAgain = tetris.run();
                 } while (playAgain);
