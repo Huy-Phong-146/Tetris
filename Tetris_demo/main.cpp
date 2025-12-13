@@ -22,6 +22,20 @@ const char BORDER_BR  = (char)188;
 const char BORDER_TL  = (char)201;
 const char BORDER_TR  = (char)187;
 
+//=============================
+// Thêm màu cho các khối
+//=========================
+enum Color {
+    WHITE = 7,
+    CYAN = 11,    // Block I
+    YELLOW = 14,  // Block O
+    PURPLE = 13,  // Block T
+    ORANGE = 12,  // Block L
+    BLUE = 9,     // Block J
+    GREEN = 10,   // Block S
+    RED = 12      // Block Z
+};
+
 
 void gotoxy(int x, int y) {
     COORD c = {x, y};
@@ -66,8 +80,9 @@ public:
     int x;
     int y;
     vector<vector<char>> shape;
+    Color blockColor;
 
-    BaseBlock() {
+    BaseBlock(Color blockColor): blockColor(blockColor) {
         x = WIDTH / 2 - 2;
         y = 0;
         shape = vector<vector<char>>(BLOCK_SIZE, vector<char>(BLOCK_SIZE, ' '));
@@ -104,14 +119,14 @@ public:
 
 class BlockI : public BaseBlock {
 public:
-    BlockI() {
+    BlockI() : BaseBlock(CYAN) {
         shape[1][0] = shape[1][1] = shape[1][2] = shape[1][3] = BLOCK_CHAR;
     }
 };
 
 class BlockO : public BaseBlock {
 public:
-    BlockO() {
+    BlockO() : BaseBlock(YELLOW) {
         shape[1][1] = shape[1][2] = BLOCK_CHAR;
         shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
@@ -119,7 +134,7 @@ public:
 
 class BlockT : public BaseBlock {
 public:
-    BlockT() {
+    BlockT() : BaseBlock(PURPLE) {
                       shape[1][1] = BLOCK_CHAR;
         shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
@@ -127,7 +142,7 @@ public:
 
 class BlockL : public BaseBlock {
 public:
-    BlockL() {
+    BlockL() : BaseBlock(ORANGE) {
                                     shape[1][2] = BLOCK_CHAR;
         shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
@@ -135,7 +150,7 @@ public:
 
 class BlockJ : public BaseBlock {
 public:
-    BlockJ() {
+    BlockJ() : BaseBlock(BLUE) {
         shape[1][0] = BLOCK_CHAR;
         shape[2][0] = shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
@@ -143,7 +158,7 @@ public:
 
 class BlockS : public BaseBlock {
 public:
-    BlockS() {
+    BlockS() : BaseBlock(GREEN) {
                       shape[1][1] = shape[1][2] = BLOCK_CHAR;
         shape[2][0] = shape[2][1] = BLOCK_CHAR;
     }
@@ -151,7 +166,7 @@ public:
 
 class BlockZ : public BaseBlock {
 public:
-    BlockZ() {
+    BlockZ() : BaseBlock(RED) {
         shape[1][0] = shape[1][1] = BLOCK_CHAR;
                       shape[2][1] = shape[2][2] = BLOCK_CHAR;
     }
@@ -163,9 +178,11 @@ public:
 class Board {
 public:
     vector<vector<char>> grid;
+    vector<vector<int>> colorGrid;
 
     Board() {
-        grid = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
+        grid      = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
+        colorGrid = vector<vector<int> >(HEIGHT, vector<int>(WIDTH, WHITE));
 
         for (vector<char>& row : grid)
             row.front() = row.back() = BORDER_V;
@@ -177,13 +194,18 @@ public:
 
     void draw() {
         gotoxy(0,0);
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
         for (int i = 0; i < HEIGHT; i++, cout << endl) {
+            SetConsoleTextAttribute (hConsole, WHITE);
             cout << grid[i][0];
 
-            for (int j = 1; j < WIDTH - 1; j++)
+            for (int j = 1; j < WIDTH - 1; j++) {
+                SetConsoleTextAttribute(hConsole, colorGrid[i][j]);
                 cout << grid[i][j] << grid[i][j];
+            }
 
+            SetConsoleTextAttribute (hConsole, WHITE);
             cout << grid[i][WIDTH - 1];
         }
     }
@@ -198,8 +220,12 @@ public:
     void blockToBoard(BaseBlock* currBlock){
         for (int i = 0 ; i < BLOCK_SIZE; i++)
             for (int j = 0 ; j < BLOCK_SIZE; j++)
-                if (currBlock->shape[i][j] != ' ')
-                    grid[currBlock->y + i][currBlock->x + j] = currBlock->shape[i][j];
+                if (currBlock->shape[i][j] != ' '){
+                    int tx = currBlock->x + j;
+                    int ty = currBlock->y + i;
+                    grid[ty][tx] = currBlock->shape[i][j];
+                    colorGrid[ty][tx] = currBlock->blockColor;
+                }
     }
 
     bool canMove(int dx, int dy, BaseBlock* currBlock) {
@@ -220,8 +246,10 @@ public:
     }
 
     void animateLineClear(int line) {
-        for (int k = 1; k < WIDTH - 1; k++)
+        for (int k = 1; k < WIDTH - 1; k++){
             grid[line][k] = '*';
+            colorGrid [line][k] = 15;
+        }
 
         draw();
         _sleep(100);
@@ -241,7 +269,6 @@ public:
             if (j != WIDTH - 1)
                 continue;
 
-            // Am thanh khi Tang diem
             Beep(1200, 50);
             Beep(1600, 50);
 
@@ -249,8 +276,10 @@ public:
             hasLineClear = true;
 
             for (int ii = i; ii > 0; ii--)
-                for (int k = 0; k < WIDTH - 1; k++)
+                for (int k = 0; k < WIDTH - 1; k++){
                     grid[ii][k] = grid[ii - 1][k];
+                    colorGrid[ii][k] = colorGrid[ii - 1][k];
+                }
 
             i++;
             draw();
@@ -329,12 +358,17 @@ private:
             cout << "    ";
         }
 
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute (hConsole, nextBlock->blockColor);
+
         for (int i = 0; i < BLOCK_SIZE; i++) {
             for (int j = 0; j < BLOCK_SIZE; j++) {
                 gotoxy(xPos + 8 + j * 2, yPos + 2 + i);
                 cout << nextBlock->shape[i][j] << nextBlock->shape[i][j];
             }
         }
+
+        SetConsoleTextAttribute (hConsole, WHITE);
     }
 
 
@@ -366,13 +400,15 @@ private:
         gotoxy(xPos + 2, yControl + 6);  cout << " Q : Quit Game";
     }
 
-    // Hiệu ứng game over
     void gameOverEffect() {
-        // Hiệu ứng rơi sao như cũ
+
+
         for (int i = HEIGHT - 2; i >= 0; i--) {
             for (int j = 1; j < WIDTH - 1; j++) {
                 board.grid[i][j] = '*';
+                board.colorGrid[i][j] = WHITE;
             }
+
             board.draw();
             _sleep(40);
         }
@@ -380,7 +416,6 @@ private:
         _sleep(300);
         system("cls");
 
-        // === Vẽ khung GAME OVER ===
         int x = 10, y = 5, w = 40, h = 10;
 
         drawFrame(x, y, w, h, "GAME OVER");
@@ -416,10 +451,9 @@ private:
     }
 
 public:
-    //Sửa constructor truyền vào tham số để chọn chế độ chơi
     TetrisGame(int mode = 1) {
-        if (mode == 1) gameSpeed = DEFAULT_GAME_SPEED;   // chế độ thường
-        else gameSpeed = 120;                            // chế độ khó
+        if (mode == 1) gameSpeed = DEFAULT_GAME_SPEED;
+        else gameSpeed = 120;
 
         hideCursor();
         system("cls");
@@ -483,8 +517,7 @@ public:
                 if (board.canMove(0,1, currBlock))
                     currBlock->y++;
                 else {
-
-                    Beep(200, 50); // Them am thanh khi dap dat
+                    Beep(200, 50);
                     board.blockToBoard(currBlock);
 
                     if (board.removeLine()) {
@@ -616,6 +649,8 @@ public:
 
 
 int main() {
+     SetConsoleOutputCP(437);
+    SetConsoleCP(437);
     srand(time(0));
     GameManager app;
     app.runProgram();
