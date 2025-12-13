@@ -21,6 +21,7 @@ const char BORDER_BL  = (char)200;
 const char BORDER_BR  = (char)188;
 const char BORDER_TL  = (char)201;
 const char BORDER_TR  = (char)187;
+const char SPACE_CHAR = (char)32;
 
 //=============================
 // Thêm màu cho các khối
@@ -91,29 +92,47 @@ public:
     virtual ~BaseBlock() {}
 
     void rotate(const vector<vector<char>>& grid) {
-        vector<vector<char>> tmp = shape;
-        vector<vector<char>> rot = vector<vector<char>>(BLOCK_SIZE, vector<char>(BLOCK_SIZE, ' '));
+        vector<vector<char>> old = shape;
+        vector<vector<char>> rot(BLOCK_SIZE, vector<char>(BLOCK_SIZE, ' '));
 
         for (int i = 0; i < BLOCK_SIZE; i++)
             for (int j = 0; j < BLOCK_SIZE; j++)
-                rot[j][BLOCK_SIZE - i - 1] = tmp[i][j];
+                rot[j][BLOCK_SIZE - i - 1] = old[i][j];
 
-        for (int i = 0; i < BLOCK_SIZE; i++)
-            for (int j = 0; j < BLOCK_SIZE; j++) {
-                if (rot[i][j] == ' ')
-                    continue;
+        int kickX[] = {0, -1, 1, -2, 2};
+        int kickY[] = {0,  0, 0,  0, 0};
 
-                int tx = x + j;
-                int ty = y + i;
+        for (int k = 0; k < 5; k++) {
+            int nx = x + kickX[k];
+            int ny = y + kickY[k];
 
-                if (tx < 1
-                 || tx >= WIDTH - 1
-                 || ty >= HEIGHT - 1
-                 || grid[ty][tx] != ' ')
-                    return;
+            bool canRotate = true;
+
+            for (int i = 0; i < BLOCK_SIZE && canRotate; i++) {
+                for (int j = 0; j < BLOCK_SIZE; j++) {
+                    if (rot[i][j] == ' ')
+                        continue;
+
+                    int tx = nx + j;
+                    int ty = ny + i;
+
+                    if (tx < 1
+                     || tx >= WIDTH - 1
+                     || ty >= HEIGHT - 1
+                     || grid[ty][tx] != ' ') {
+                        canRotate = false;
+                        break;
+                    }
+                }
+            }
+
+            if (canRotate) {
+                x = nx;
+                y = ny;
+                shape = rot;
+                return;
+            }
         }
-
-        shape = rot;
     }
 };
 
@@ -391,13 +410,14 @@ private:
 
         int yControl = 19;
 
-        drawFrame(xPos, yControl, boxWidth, 8, "CONTROLS");
-        gotoxy(xPos + 2, yControl + 1);  cout << " A : Move Left";
-        gotoxy(xPos + 2, yControl + 2);  cout << " D : Move Right";
-        gotoxy(xPos + 2, yControl + 3);  cout << " S : Soft Drop";
-        gotoxy(xPos + 2, yControl + 4);  cout << " W : Rotate";
-        gotoxy(xPos + 2, yControl + 5);  cout << " P : Pause Game";
-        gotoxy(xPos + 2, yControl + 6);  cout << " Q : Quit Game";
+        drawFrame(xPos, yControl, boxWidth, 9, "CONTROLS");
+        gotoxy(xPos + 2, yControl + 1);  cout << "A     : Move Left";
+        gotoxy(xPos + 2, yControl + 2);  cout << "D     : Move Right";
+        gotoxy(xPos + 2, yControl + 3);  cout << "S     : Soft Drop";
+        gotoxy(xPos + 2, yControl + 4);  cout << "SPACE : HARD Drop";
+        gotoxy(xPos + 2, yControl + 5);  cout << "W     : Rotate";
+        gotoxy(xPos + 2, yControl + 6);  cout << "P     : Pause Game";
+        gotoxy(xPos + 2, yControl + 7);  cout << "Q     : Quit Game";
     }
 
     void gameOverEffect() {
@@ -420,12 +440,8 @@ private:
 
         drawFrame(x, y, w, h, "GAME OVER");
 
-        // In dòng thông báo
-        gotoxy(x + 8, y + 4);
-        cout << "Your Score: " << score;
-
-        gotoxy(x + 8, y + 6);
-        cout << "Press any key to return...";
+        gotoxy(x + 8, y + 4); cout << "Your Score: " << score;
+        gotoxy(x + 8, y + 6); cout << "Press any key to return...";
 
         getch();
     }
@@ -493,6 +509,12 @@ public:
                     score++;
                     bool isNew = checkHighScore();
                     drawUI(isNew);
+                } else if (c == SPACE_CHAR) {
+                    while (board.canMove(0, 1, currBlock))
+                        currBlock->y++;
+
+                    timer = gameSpeed + 1;
+                    Beep(800, 50);
                 } else if (c == 'w') {
                     currBlock->rotate(board.grid);
                     Beep(600, 30);
@@ -511,7 +533,7 @@ public:
                         return false;
                     }
                 }
-            }
+        }
 
             if (timer > gameSpeed) {
                 if (board.canMove(0,1, currBlock))
@@ -562,7 +584,6 @@ private:
             system("cls");
 
             int x = 10, y = 3, w = 40, h = 10;
-
             drawFrame(x, y, w, h, "TETRIS MASTER");
 
             gotoxy(x + 4, y + 3); cout << "1. Start Game";
@@ -576,13 +597,11 @@ private:
         }
     }
 
-    //Chọn chế độ chơi sau khi chọn option Start Game
     int chooseMode() {
         while (true) {
             system("cls");
 
             int x = 10, y = 5, w = 40, h = 10;
-
             drawFrame(x, y, w, h, "SELECT MODE");
 
             gotoxy(x + 4, y + 3); cout << "1. Normal Mode";
@@ -607,14 +626,10 @@ private:
             file >> hs;
 
         int x = 10, y = 5, w = 40, h = 10;
-
         drawFrame(x, y, w, h, "HIGH SCORE");
 
-        gotoxy(x + 4, y + 4);
-        cout << "Highest Score: " << hs;
-
-        gotoxy(x + 7, y + 7);
-        cout << "Press any key to return...";
+        gotoxy(x + 4, y + 4); cout << "Highest Score: " << hs;
+        gotoxy(x + 7, y + 7); cout << "Press any key to return...";
         getch();
     }
 
@@ -649,7 +664,7 @@ public:
 
 
 int main() {
-     SetConsoleOutputCP(437);
+    SetConsoleOutputCP(437);
     SetConsoleCP(437);
     srand(time(0));
     GameManager app;
