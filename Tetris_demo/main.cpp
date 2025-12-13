@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <vector>
 #include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -18,6 +19,44 @@ const char BORDER_V   = (char)186;
 const char BORDER_H   = (char)205;
 const char BORDER_BL  = (char)200;
 const char BORDER_BR  = (char)188;
+const char BORDER_TL  = (char)201;
+const char BORDER_TR  = (char)187;
+
+
+void gotoxy(int x, int y) {
+    COORD c = {x, y};
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+
+void hideCursor() {
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    info.dwSize = 100;
+    info.bVisible = FALSE;
+    SetConsoleCursorInfo(consoleHandle, &info);
+   }
+
+void drawFrame(int x, int y, int w, int h, string title) {
+    gotoxy(x, y);
+    cout << BORDER_TL;
+    for (int i = 0; i < w - 2; i++) cout << BORDER_H;
+    cout << BORDER_TR;
+
+    if (!title.empty()) {
+        gotoxy(x + (w - title.length()) / 2, y); // Căn giữa tiêu đề
+        cout << " " << title << " ";
+    }
+
+    for (int i = 1; i < h - 1; i++) {
+        gotoxy(x, y + i);         cout << BORDER_V;
+        gotoxy(x + w - 1, y + i); cout << BORDER_V;
+    }
+
+    gotoxy(x, y + h - 1);
+    cout << BORDER_BL;
+    for (int i = 0; i < w - 2; i++) cout << BORDER_H;
+    cout << BORDER_BR;
+}
 
 //=============================
 // BaseBlock Class and Concrete Classes
@@ -136,17 +175,17 @@ public:
         grid.back().back()  = BORDER_BR;
     }
 
-    void gotoxy(int x, int y) {
-        COORD c = {x, y};
-        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
-    }
-
     void draw() {
         gotoxy(0,0);
 
-        for (int i = 0; i < HEIGHT; i++, cout << endl)
-            for (int j = 0; j < WIDTH; j++)
+        for (int i = 0; i < HEIGHT; i++, cout << endl) {
+            cout << grid[i][0];
+
+            for (int j = 1; j < WIDTH - 1; j++)
                 cout << grid[i][j] << grid[i][j];
+
+            cout << grid[i][WIDTH - 1];
+        }
     }
 
     void boardDeleteBlock(BaseBlock* currBlock) {
@@ -229,15 +268,10 @@ class TetrisGame {
 private:
     Board board;
     BaseBlock* currBlock;
+    BaseBlock* nextBlock;
     int gameSpeed;
-
-    void hideCursor() {
-        HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-        CONSOLE_CURSOR_INFO info;
-        info.dwSize = 100;
-        info.bVisible = FALSE;
-        SetConsoleCursorInfo(consoleHandle, &info);
-    }
+    int score;
+    int highestScore;
 
     BaseBlock* createRandomBlock() {
         int r = rand() % 7;
@@ -258,15 +292,151 @@ private:
             gameSpeed -= D_SPEED_DECREASE;
     }
 
-public:
-    TetrisGame() {
-        gameSpeed = DEFAULT_GAME_SPEED;
-        hideCursor();
-        system("cls");
-        currBlock = createRandomBlock();
+    void loadHighestScore() {
+        ifstream file("highest_score.txt");
+
+        if (file.is_open()) {
+            file >> highestScore;
+            file.close();
+        } else
+            highestScore = 0;
     }
 
-    void run() {
+    void saveHighestScore() {
+        ofstream file("highest_score.txt");
+
+        if (file.is_open()) {
+            file << highestScore;
+            file.close();
+        }
+    }
+
+    bool checkHighScore() {
+        if (score <= highestScore)
+            return false;
+
+        highestScore = score;
+        saveHighestScore();
+        return true;
+    }
+
+    void drawNextBlock() {
+        int xPos = WIDTH * 2 + 5;
+        int yPos = 11;
+
+        for(int i = 0; i < BLOCK_SIZE; i++) {
+            gotoxy(xPos + 9, yPos + 2 + i);
+            cout << "    ";
+        }
+
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            for (int j = 0; j < BLOCK_SIZE; j++) {
+                gotoxy(xPos + 8 + j * 2, yPos + 2 + i);
+                cout << nextBlock->shape[i][j] << nextBlock->shape[i][j];
+            }
+        }
+    }
+
+
+    void drawUI(bool isNewRecord = false) {
+        int xPos = WIDTH * 2 + 5;
+        int boxWidth = 22;
+
+        drawFrame(xPos, 2, boxWidth, 4, "SCORE");
+        gotoxy(xPos + 2, 4);
+        cout << score;
+
+        string highScoreTitle = isNewRecord ? "NEW RECORD!" : "HIGH SCORE";
+        drawFrame(xPos, 7, boxWidth, 4, highScoreTitle);
+
+        gotoxy(xPos + 2, 9);
+        cout << highestScore;
+
+        drawFrame(xPos, 12, boxWidth, 6, "NEXT BLOCK");
+        drawNextBlock();
+
+        int yControl = 19;
+
+        drawFrame(xPos, yControl, boxWidth, 8, "CONTROLS");
+        gotoxy(xPos + 2, yControl + 1);  cout << " A : Move Left";
+        gotoxy(xPos + 2, yControl + 2);  cout << " D : Move Right";
+        gotoxy(xPos + 2, yControl + 3);  cout << " S : Soft Drop";
+        gotoxy(xPos + 2, yControl + 4);  cout << " W : Rotate";
+        gotoxy(xPos + 2, yControl + 5);  cout << " P : Pause Game";
+        gotoxy(xPos + 2, yControl + 6);  cout << " Q : Quit Game";
+    }
+
+    // Hiệu ứng game over
+    void gameOverEffect() {
+        // Hiệu ứng rơi sao như cũ
+        for (int i = HEIGHT - 2; i >= 0; i--) {
+            for (int j = 1; j < WIDTH - 1; j++) {
+                board.grid[i][j] = '*';
+            }
+            board.draw();
+            _sleep(40);
+        }
+
+        _sleep(300);
+        system("cls");
+
+        // === Vẽ khung GAME OVER ===
+        int x = 10, y = 5, w = 40, h = 10;
+
+        drawFrame(x, y, w, h, "GAME OVER");
+
+        // In dòng thông báo
+        gotoxy(x + 8, y + 4);
+        cout << "Your Score: " << score;
+
+        gotoxy(x + 8, y + 6);
+        cout << "Press any key to return...";
+
+        getch();
+    }
+
+    int showPauseMenu() {
+        system("cls");
+        int x = 10, y = 5, w = 40, h = 10;
+
+        drawFrame(x, y, w, h, "PAUSE");
+        gotoxy(x + 4, y + 3); cout << "1. Resume";
+        gotoxy(x + 4, y + 4); cout << "2. Restart";
+        gotoxy(x + 4, y + 5); cout << "3. Quit";
+        gotoxy(x + 4, y + 7); cout << "Enter your choice: ";
+
+        char c;
+
+        while (true) {
+            c = _getch();
+
+            if ('0' < c && c < '4')
+                return c -'0';
+        }
+    }
+
+public:
+    //Sửa constructor truyền vào tham số để chọn chế độ chơi
+    TetrisGame(int mode = 1) {
+        if (mode == 1) gameSpeed = DEFAULT_GAME_SPEED;   // chế độ thường
+        else gameSpeed = 120;                            // chế độ khó
+
+        hideCursor();
+        system("cls");
+
+        currBlock = createRandomBlock();
+        nextBlock = createRandomBlock();
+        score = 0;
+        loadHighestScore();
+        drawUI();
+    }
+
+    ~TetrisGame() {
+        delete currBlock;
+        delete nextBlock;
+    }
+
+    bool run() {
         int timer = 0;
 
         while (1){
@@ -274,28 +444,39 @@ public:
 
             if (kbhit()){
                 char c = getch();
+                c = tolower(c);
 
-                // Qua trai
+
                 if (c == 'a' && board.canMove(-1,0, currBlock)) {
                     currBlock->x--;
                     Beep(400, 30);
-                }
-                // Qua phai
-                else if (c == 'd' && board.canMove( 1,0, currBlock)) {
+                } else if (c == 'd' && board.canMove( 1,0, currBlock)) {
                     currBlock->x++;
                     Beep(400, 30);
-                }
-                // Di chuyen xuong nhanh
-                else if (c == 'x' && board.canMove( 0,1, currBlock)) {
+                } else if (c == 's' && board.canMove( 0,1, currBlock)) {
                     currBlock->y++;
                     Beep(450, 30);
-                }
-                // Xoay
-                else if (c == 'w') {
+                    score++;
+                    bool isNew = checkHighScore();
+                    drawUI(isNew);
+                } else if (c == 'w') {
                     currBlock->rotate(board.grid);
                     Beep(600, 30);
+                } else if (c == 'q') {
+                    return false;
+                } else if (c == 'p') {
+                    int choice = showPauseMenu();
+
+                    if (choice == 1) {
+                        system("cls");
+                        board.draw();
+                        drawUI(checkHighScore());
+                    } else if (choice == 2)
+                        return true;
+                    else if (choice == 3) {
+                        return false;
+                    }
                 }
-                else if (c == 'q') break;
             }
 
             if (timer > gameSpeed) {
@@ -306,17 +487,24 @@ public:
                     Beep(200, 50); // Them am thanh khi dap dat
                     board.blockToBoard(currBlock);
 
-                    if (board.removeLine())
+                    if (board.removeLine()) {
+                        score += 30;
                         increaseSpeed();
+                        bool isNew = checkHighScore();
+                        drawUI(isNew);
+                    }
 
                     delete currBlock;
-                    currBlock = createRandomBlock();
+                    currBlock = nextBlock;
+                    nextBlock = createRandomBlock();
 
-                    // Them am thanh, thoat vong lap game khi Game Over
                     if (!board.canMove(0, 0, currBlock)) {
                         Beep(300, 800);
-                        break;
+                        gameOverEffect();
+                        return false;
                     }
+
+                    drawNextBlock();
                 }
 
                 timer = 0;
@@ -328,13 +516,109 @@ public:
             _sleep(50);
             timer += 50;
         }
+
+        return false;
     }
 };
 
+
+class GameManager {
+private:
+    int menu() {
+        while (true) {
+            system("cls");
+
+            int x = 10, y = 3, w = 40, h = 10;
+
+            drawFrame(x, y, w, h, "TETRIS MASTER");
+
+            gotoxy(x + 4, y + 3); cout << "1. Start Game";
+            gotoxy(x + 4, y + 4); cout << "2. View High Score";
+            gotoxy(x + 4, y + 5); cout << "3. Quit";
+
+            gotoxy(x + 12, y + 7); cout << "Enter your choice";
+
+            char c = _getch();
+            if ('0' < c && c < '4') return c - '0';
+        }
+    }
+
+    //Chọn chế độ chơi sau khi chọn option Start Game
+    int chooseMode() {
+        while (true) {
+            system("cls");
+
+            int x = 10, y = 5, w = 40, h = 10;
+
+            drawFrame(x, y, w, h, "SELECT MODE");
+
+            gotoxy(x + 4, y + 3); cout << "1. Normal Mode";
+            gotoxy(x + 4, y + 4); cout << "2. Hard Mode";
+            gotoxy(x + 4, y + 5); cout << "3. Back";
+            gotoxy(x + 4, y + 7); cout << "Enter your choice: ";
+
+            char mode = _getch();
+
+            if ('0' < mode && mode < '4')
+                return mode - '0';
+        }
+    }
+
+    void showHighScore() {
+        system("cls");
+
+        ifstream file("highest_score.txt");
+        int hs = 0;
+
+        if (file.is_open())
+            file >> hs;
+
+        int x = 10, y = 5, w = 40, h = 10;
+
+        drawFrame(x, y, w, h, "HIGH SCORE");
+
+        gotoxy(x + 4, y + 4);
+        cout << "Highest Score: " << hs;
+
+        gotoxy(x + 7, y + 7);
+        cout << "Press any key to return...";
+        getch();
+    }
+
+public:
+    void runProgram() {
+        hideCursor();
+
+        while (true) {
+            int option = menu();
+
+            if (option == 1) {
+                int mode = chooseMode();
+
+                if (mode == 3)
+                    continue;
+
+                bool playAgain = false;
+
+                do {
+                    TetrisGame tetris(mode);
+                    playAgain = tetris.run();
+                } while (playAgain);
+            } else if (option == 2) {
+                showHighScore();
+            } else if (option == 3)
+                break;
+        }
+
+        gotoxy(0, HEIGHT);
+    }
+};
+
+
 int main() {
     srand(time(0));
-    TetrisGame tetris;
-    tetris.run();
+    GameManager app;
+    app.runProgram();
 
     return 0;
 }
