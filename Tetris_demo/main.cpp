@@ -275,37 +275,44 @@ public:
     }
 
 
-    bool removeLine(){
-        bool hasLineClear = false;
+    int removeLine(){
+        int linesCleared = 0;
 
-        for (int i = HEIGHT - 2; i > 0; i--){
-            int j;
-
-            for (j = 0; j < WIDTH - 1; j++)
-                if (grid[i][j] == ' ')
+        for (int i = HEIGHT - 2; i > 0; i--) {
+            bool full = true;
+            for (int j = 1; j < WIDTH - 1; j++) {
+                if (grid[i][j] == ' ') {
+                    full = false;
                     break;
+                }
+            }
 
-            if (j != WIDTH - 1)
-                continue;
+            if (!full) continue;
+            
+            linesCleared++;
 
             Beep(1200, 50);
             Beep(1600, 50);
 
             animateLineClear(i);
-            hasLineClear = true;
 
             for (int ii = i; ii > 0; ii--)
                 for (int k = 0; k < WIDTH - 1; k++){
                     grid[ii][k] = grid[ii - 1][k];
                     colorGrid[ii][k] = colorGrid[ii - 1][k];
                 }
-
+            
+            for (int k = 1; k < WIDTH - 1; k++) {
+                grid[0][k] = ' ';
+                colorGrid[0][k] = WHITE;
+            }
+                
             i++;
             draw();
             _sleep(200);
         }
 
-        return hasLineClear;
+        return linesCleared;
     }
 };
 
@@ -319,8 +326,9 @@ private:
     BaseBlock* nextBlock;
     int gameSpeed;
     int score;
+    int level;
     int highestScore;
-
+    int comboCount;
     BaseBlock* createRandomBlock() {
         int r = rand() % 7;
 
@@ -397,7 +405,22 @@ private:
 
         drawFrame(xPos, 2, boxWidth, 4, "SCORE");
         gotoxy(xPos + 2, 4);
+        cout << "        ";              
+        gotoxy(xPos + 2, 4);
         cout << score;
+        
+        int comboBoxX = xPos + boxWidth + 2;  
+        int comboBoxW = 16;
+
+        drawFrame(comboBoxX, 2, comboBoxW, 4, "XCOMBO");
+        gotoxy(comboBoxX + 2, 4);
+        cout << "        ";              
+        gotoxy(comboBoxX + 2, 4);
+
+        if (comboCount > 0)
+            cout << "x" << (comboCount + 1); 
+        else
+            cout << "x0";
 
         string highScoreTitle = isNewRecord ? "NEW RECORD!" : "HIGH SCORE";
         drawFrame(xPos, 7, boxWidth, 4, highScoreTitle);
@@ -418,6 +441,20 @@ private:
         gotoxy(xPos + 2, yControl + 5);  cout << "W     : Rotate";
         gotoxy(xPos + 2, yControl + 6);  cout << "P     : Pause Game";
         gotoxy(xPos + 2, yControl + 7);  cout << "Q     : Quit Game";
+    }
+
+    void scoreCalculate(int linesCleared){
+        int baseScore = 0;
+        switch (linesCleared){
+            case 1: baseScore = 100; break;
+            case 2: baseScore = 300; break;
+            case 3: baseScore = 500; break;
+            case 4: baseScore = 800; break; 
+            default: return;
+        }
+        int levelMultiplier = (level);
+        int comboBonus = (comboCount * 50 * linesCleared);
+        score += baseScore * levelMultiplier + comboBonus;
     }
 
     void gameOverEffect() {
@@ -466,10 +503,24 @@ private:
         }
     }
 
+
+
 public:
     TetrisGame(int mode = 1) {
-        if (mode == 1) gameSpeed = DEFAULT_GAME_SPEED;
-        else gameSpeed = 120;
+        level = 0;
+
+        if (mode == 1) {
+            gameSpeed = DEFAULT_GAME_SPEED;
+            level = 1;
+        } 
+        if (mode == 2) {
+            gameSpeed = DEFAULT_GAME_SPEED - 40;
+            level = 2;
+        } 
+        if (mode == 3) {
+            gameSpeed = DEFAULT_GAME_SPEED - 80;
+            level = 3;
+        } 
 
         hideCursor();
         system("cls");
@@ -477,6 +528,7 @@ public:
         currBlock = createRandomBlock();
         nextBlock = createRandomBlock();
         score = 0;
+        comboCount = 0;
         loadHighestScore();
         drawUI();
     }
@@ -506,7 +558,6 @@ public:
                 } else if (c == 's' && board.canMove( 0,1, currBlock)) {
                     currBlock->y++;
                     Beep(450, 30);
-                    score++;
                     bool isNew = checkHighScore();
                     drawUI(isNew);
                 } else if (c == SPACE_CHAR) {
@@ -535,18 +586,24 @@ public:
                 }
         }
 
-            if (timer > gameSpeed) {
+            if (timer >= gameSpeed) {
                 if (board.canMove(0,1, currBlock))
                     currBlock->y++;
                 else {
                     Beep(200, 50);
                     board.blockToBoard(currBlock);
 
-                    if (board.removeLine()) {
-                        score += 30;
+                    int linesCleared = board.removeLine();
+                    if (linesCleared > 0) {
+                        scoreCalculate(linesCleared);
+                        comboCount++;
                         increaseSpeed();
                         bool isNew = checkHighScore();
                         drawUI(isNew);
+                    }
+                    else{
+                        comboCount = 0;
+                        drawUI(false);
                     }
 
                     delete currBlock;
@@ -566,6 +623,7 @@ public:
             }
 
             board.blockToBoard(currBlock);
+
             board.draw();
 
             _sleep(50);
@@ -605,13 +663,14 @@ private:
             drawFrame(x, y, w, h, "SELECT MODE");
 
             gotoxy(x + 4, y + 3); cout << "1. Normal Mode";
-            gotoxy(x + 4, y + 4); cout << "2. Hard Mode";
-            gotoxy(x + 4, y + 5); cout << "3. Back";
+            gotoxy(x + 4, y + 4); cout << "2. Medium Mode";
+            gotoxy(x + 4, y + 5); cout << "3. Hard Mode";
+            gotoxy(x + 4, y + 6); cout << "4. Back";
             gotoxy(x + 4, y + 7); cout << "Enter your choice: ";
 
             char mode = _getch();
 
-            if ('0' < mode && mode < '4')
+            if ('0' < mode && mode < '5')
                 return mode - '0';
         }
     }
@@ -643,7 +702,7 @@ public:
             if (option == 1) {
                 int mode = chooseMode();
 
-                if (mode == 3)
+                if (mode == 4)
                     continue;
 
                 bool playAgain = false;
