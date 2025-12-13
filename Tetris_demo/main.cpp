@@ -14,6 +14,7 @@ using namespace std;
 #define MAX_GAME_SPEED 50
 #define D_SPEED_DECREASE 10
 
+const char SPACE_CHAR = (char)32;
 const char BLOCK_CHAR = (char)219;
 const char BORDER_V   = (char)186;
 const char BORDER_H   = (char)205;
@@ -21,20 +22,22 @@ const char BORDER_BL  = (char)200;
 const char BORDER_BR  = (char)188;
 const char BORDER_TL  = (char)201;
 const char BORDER_TR  = (char)187;
-const char SPACE_CHAR = (char)32;
+
 
 //=============================
 // Thêm màu cho các khối
 //=========================
 enum Color {
-    WHITE = 7,
+LIGHT_GRAY = 7,
+    DARK_GRAY = 8,
     CYAN = 11,    // Block I
     YELLOW = 14,  // Block O
     PURPLE = 13,  // Block T
     ORANGE = 12,  // Block L
     BLUE = 9,     // Block J
     GREEN = 10,   // Block S
-    RED = 12      // Block Z
+    RED = 12,     // Block Z
+    WHITE = 15
 };
 
 
@@ -201,7 +204,7 @@ public:
 
     Board() {
         grid      = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
-        colorGrid = vector<vector<int> >(HEIGHT, vector<int>(WIDTH, WHITE));
+        colorGrid = vector<vector<int> >(HEIGHT, vector<int>(WIDTH, LIGHT_GRAY));
 
         for (vector<char>& row : grid)
             row.front() = row.back() = BORDER_V;
@@ -216,7 +219,7 @@ public:
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
         for (int i = 0; i < HEIGHT; i++, cout << endl) {
-            SetConsoleTextAttribute (hConsole, WHITE);
+            SetConsoleTextAttribute (hConsole, LIGHT_GRAY);
             cout << grid[i][0];
 
             for (int j = 1; j < WIDTH - 1; j++) {
@@ -224,7 +227,7 @@ public:
                 cout << grid[i][j] << grid[i][j];
             }
 
-            SetConsoleTextAttribute (hConsole, WHITE);
+            SetConsoleTextAttribute (hConsole, LIGHT_GRAY);
             cout << grid[i][WIDTH - 1];
         }
     }
@@ -265,13 +268,26 @@ public:
     }
 
     void animateLineClear(int line) {
+        char frames[] = {(char)219, (char)178, (char)177, (char) 176};
+
         for (int k = 1; k < WIDTH - 1; k++){
-            grid[line][k] = '*';
-            colorGrid [line][k] = 15;
+            grid[line][k] = frames[0];
+            colorGrid [line][k] = WHITE;
         }
 
         draw();
-        _sleep(100);
+        _sleep(50);
+        Beep(1000, 30);
+
+        for (int i = 1; i < 4; i++) {
+            for (int k = 1; k < WIDTH - 1; k++) {
+                grid[line][k] = frames[i];
+                colorGrid[line][k] = DARK_GRAY;
+            }
+
+            draw();
+            _sleep(40);
+        }
     }
 
 
@@ -387,7 +403,7 @@ private:
             }
         }
 
-        SetConsoleTextAttribute (hConsole, WHITE);
+        SetConsoleTextAttribute (hConsole, LIGHT_GRAY);
     }
 
 
@@ -421,19 +437,27 @@ private:
     }
 
     void gameOverEffect() {
+        for (int i = 0; i < HEIGHT - 1; i++)
+            for (int j = 1; j < WIDTH - 1; j++)
+                if (board.grid[i][j] != ' ')
+                    board.colorGrid[i][j] = DARK_GRAY;
 
+        Beep(300, 300); // Âm thanh buồn thảm
+        _sleep(500);
 
         for (int i = HEIGHT - 2; i >= 0; i--) {
             for (int j = 1; j < WIDTH - 1; j++) {
-                board.grid[i][j] = '*';
-                board.colorGrid[i][j] = WHITE;
+                board.grid[i][j] = BLOCK_CHAR;
+                board.colorGrid[i][j] = RED;
             }
 
             board.draw();
-            _sleep(40);
+
+            Beep(600 - (i * 20), 30);
+            _sleep(20);
         }
 
-        _sleep(300);
+        _sleep(500);
         system("cls");
 
         int x = 10, y = 5, w = 40, h = 10;
