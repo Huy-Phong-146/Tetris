@@ -9,8 +9,11 @@ class Board {
 public:
     vector<vector<char>> grid;
     vector<vector<int>> colorGrid;
+    int offsetX;
+    int offsetY;
 
     Board();
+    Board(int offsetX, int offsetY);
 
     void draw();
     void boardDeleteBlock(BaseBlock* currBlock);

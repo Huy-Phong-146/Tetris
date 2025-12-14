@@ -1,4 +1,4 @@
-#include "include/GameManager.h"
+#include "GameManager.h"
 
 int main() {
     SetConsoleOutputCP(437);

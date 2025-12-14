@@ -19,16 +19,16 @@ int GameManager::menu() {
     }
 }
 
-int GameManager::chooseMode() {
+int GameManager::chooseLevel() {
     while (true) {
         system("cls");
 
         int x = 10, y = 5, w = 40, h = 10;
-        drawFrame(x, y, w, h, "SELECT MODE");
+        drawFrame(x, y, w, h, "SELECT LEVEL");
 
-        gotoxy(x + 4, y + 3);  cout << "1. Normal Mode";
-        gotoxy(x + 4, y + 4);  cout << "2. Medium Mode";
-        gotoxy(x + 4, y + 5);  cout << "3. Hard Mode";
+        gotoxy(x + 4, y + 3);  cout << "1. Normal Level";
+        gotoxy(x + 4, y + 4);  cout << "2. Medium Level";
+        gotoxy(x + 4, y + 5);  cout << "3. Hard Level";
         gotoxy(x + 4, y + 6);  cout << "4. Back";
         gotoxy(x + 12, y + 7); cout << "Enter your choice";
 
@@ -40,20 +40,34 @@ int GameManager::chooseMode() {
     }
 }
 
+unordered_map<int, int> GameManager::loadHighScore() {
+    unordered_map<int, int> scores;
+    ifstream file("high_scores.dat");
+    int key;
+    int value;
+
+    while (file >> key >> value)
+        scores[key] = value;
+
+    return scores;
+}
+
 void GameManager::showHighScore() {
     system("cls");
+    unordered_map<int, int> scores = loadHighScore();
 
-    ifstream file("highest_score.txt");
-    int hs = 0;
+    int hsNormal = scores[1];
+    int hsMedium = scores[2];
+    int hsHard   = scores[3];
 
-    if (file.is_open())
-        file >> hs;
+    int x = 10, y = 5, w = 40, h = 12;
+    drawFrame(x, y, w, h, "HIGH SCORES");
 
-    int x = 10, y = 5, w = 40, h = 10;
-    drawFrame(x, y, w, h, "HIGH SCORE");
+    gotoxy(x + 6, y + 4); cout << "NORMAL : " << hsNormal;
+    gotoxy(x + 6, y + 5); cout << "MEDIUM : " << hsMedium;
+    gotoxy(x + 6, y + 6); cout << "HARD   : " << hsHard;
 
-    gotoxy(x + 4, y + 4); cout << "Highest Score: " << hs;
-    gotoxy(x + 7, y + 7); cout << "Press any key to return...";
+    gotoxy(x + 9, y + 9); cout << "Press any key to return";
     getch();
     playSound(600, AUDIO_LENGTH);
 }
@@ -68,16 +82,16 @@ void GameManager::runProgram() {
         int option = menu();
 
         if (option == 1) {
-            int mode = chooseMode();
+            int level = chooseLevel();
 
-            if (mode == 4)
+            if (level == 4)
                 continue;
 
             bool playAgain = false;
 
             do {
                 scene.runCountDown();
-                TetrisGame tetris(mode);
+                TetrisGame tetris(level);
                 playAgain = tetris.run();
             } while (playAgain);
         } else if (option == 2) {

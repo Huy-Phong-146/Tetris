@@ -6,7 +6,8 @@
 class GameManager {
 private:
     int menu();
-    int chooseMode();
+    int chooseLevel();
+    unordered_map<int, int> loadHighScore();
     void showHighScore();
 
 public:

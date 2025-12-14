@@ -1,4 +1,5 @@
 #include "TetrisGame.h"
+#include <unordered_map>
 
 BaseBlock* TetrisGame::createRandomBlock() {
     int r = rand() % 7;
@@ -19,31 +20,33 @@ void TetrisGame::increaseSpeed() {
         gameSpeed -= D_SPEED_DECREASE;
 }
 
-void TetrisGame::loadHighestScore() {
-    ifstream file("highest_score.txt");
+void TetrisGame::loadHighScores() {
+    ifstream file("high_scores.dat");
+    int value;
+    int key;
 
-    if (file.is_open()) {
-        file >> highestScore;
-        file.close();
-    } else
-        highestScore = 0;
+    highScores.clear();
+
+    while (file >> key >> value)
+        highScores[key] = value;
+
+    if (!highScores.count(level))
+        highScores[level] = 0;
 }
 
-void TetrisGame::saveHighestScore() {
-    ofstream file("highest_score.txt");
+void TetrisGame::saveHighScores() {
+    ofstream file("high_scores.dat");
 
-    if (file.is_open()) {
-        file << highestScore;
-        file.close();
-    }
+    for (auto& [key, value] : highScores)
+        file << key << " " << value << '\n';
 }
 
 bool TetrisGame::checkHighScore() {
-    if (score <= highestScore)
+    if (score <= highScores[level])
         return false;
 
-    highestScore = score;
-    saveHighestScore();
+    highScores[level] = score;
+    saveHighScores();
     return true;
 }
 
@@ -91,11 +94,15 @@ void TetrisGame::drawUI(bool isNewRecord) {
     else
         cout << "x0";
 
-    string highScoreTitle = isNewRecord ? "NEW RECORD!" : "HIGH SCORE";
+    string difficultyName =
+        (level == 1) ? "NORMAL" :
+        (level == 2) ? "MEDIUM" : "HARD";
+
+    string highScoreTitle = isNewRecord ? "NEW RECORD!" : "HIGH SCORE (" + difficultyName + ")";
     drawFrame(xPos, 7, boxWidth, 4, highScoreTitle);
 
     gotoxy(xPos + 2, 9);
-    cout << highestScore;
+    cout << highScores[level];
 
     drawFrame(xPos, 12, boxWidth, 6, "NEXT BLOCK");
     drawNextBlock();
@@ -182,28 +189,16 @@ int TetrisGame::showPauseMenu() {
     }
 }
 
-TetrisGame::TetrisGame(int mode) {
-    level = 0;
+TetrisGame::TetrisGame(int level) : level(level) {
+    gameSpeed = DEFAULT_GAME_SPEED - 40 * (level - 1);
 
-    if (mode == 1) {
-        gameSpeed = DEFAULT_GAME_SPEED;
-        level = 1;
-    } else if (mode == 2) {
-        gameSpeed = DEFAULT_GAME_SPEED - 40;
-        level = 2;
-    } else if (mode == 3) {
-        gameSpeed = DEFAULT_GAME_SPEED - 80;
-        level = 3;
-    }
-
-    hideCursor();
     system("cls");
 
     currBlock = createRandomBlock();
     nextBlock = createRandomBlock();
     score = 0;
     comboCount = 0;
-    loadHighestScore();
+    loadHighScores();
     drawUI();
 }
 

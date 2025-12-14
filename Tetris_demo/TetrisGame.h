@@ -3,6 +3,7 @@
 #include "Utilities.h"
 #include "Block.h"
 #include "Board.h"
+#include <unordered_map>
 
 // ====================
 // TetrisGame Class
@@ -15,13 +16,13 @@ private:
     int gameSpeed;
     int score;
     int level;
-    int highestScore;
+    unordered_map<int, int> highScores;
     int comboCount;
 
     BaseBlock* createRandomBlock();
     void increaseSpeed();
-    void loadHighestScore();
-    void saveHighestScore();
+    void loadHighScores();
+    void saveHighScores();
     bool checkHighScore();
     void drawNextBlock();
     void drawUI(bool isNewRecord = false);

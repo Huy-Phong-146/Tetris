@@ -1,7 +1,19 @@
 #include "Board.h"
 #include "Block.h"
 
-Board::Board() {
+Board::Board() : offsetX(3), offsetY(5) {
+    grid      = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
+    colorGrid = vector<vector<int> >(HEIGHT, vector<int>(WIDTH, LIGHT_GRAY));
+
+    for (vector<char>& row : grid)
+        row.front() = row.back() = BORDER_V;
+
+    grid.emplace_back(vector<char>(WIDTH, BORDER_H));
+    grid.back().front() = BORDER_BL;
+    grid.back().back()  = BORDER_BR;
+}
+
+Board::Board(int offsetX, int offsetY) : offsetX(offsetX), offsetY(offsetY) {
     grid      = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
     colorGrid = vector<vector<int> >(HEIGHT, vector<int>(WIDTH, LIGHT_GRAY));
 
@@ -14,9 +26,8 @@ Board::Board() {
 }
 
 void Board::draw() {
-    gotoxy(0,0);
-
     for (int i = 0; i < HEIGHT; i++, cout << endl) {
+        gotoxy(offsetX, i + offsetY);
         setColor(WHITE);
         cout << grid[i][0];
 
