@@ -23,62 +23,46 @@ const char BORDER_BR  = (char)188;
 const char BORDER_TL  = (char)201;
 const char BORDER_TR  = (char)187;
 // cấu trúc chứa các số để đến ngược
+
 const vector<string> sThree = {
-    " .----------------. ",
-    "| .--------------. |",
-    "| |    ______    | |",
-    "| |   / ____ `.  | |",
-    "| |   `'  __) |  | |",
-    "| |   _  |__ '.  | |",
-    "| |  | \\____) |  | |",
-    "| |   \\______.'  | |",
-    "| |              | |",
-    "| '--------------' |",
-    " '----------------' "
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xBB",     // ██████╗
+    " \xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA", // ╚════██║
+    "  \xDB\xDB\xDB\xDB\xDB\xC9\xBC",    //  █████╔╝
+    "  \xC8\xCD\xCD\xCD\xDB\xDB\xBB",    //  ╚═══██╗
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC", // ██████╔╝
+    " \xC8\xCD\xCD\xCD\xCD\xCD\xBC "     // ╚═════╝
 };
 
+
 const vector<string> sTwo = {
-    " .----------------. ",
-    "| .--------------. |",
-    "| |    _____     | |",
-    "| |   / ___ `.   | |",
-    "| |  |_/___) |   | |",
-    "| |   .'____.'   | |",
-    "| |  / /____     | |",
-    "| |  |_______|   | |",
-    "| |              | |",
-    "| '--------------' |",
-    " '----------------' "
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xBB",     // ██████╗
+    " \xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA", // ╚════██║
+    "  \xDB\xDB\xDB\xDB\xDB\xC9\xBC",    //  █████╔╝
+    " \xDB\xDB\xC9\xCD\xCD\xCD\xBC ",    // ██╔═══╝
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB", // ███████╗
+    " \xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC"  // ╚══════╝
 };
 
 const vector<string> sOne = {
-    " .----------------. ",
-    "| .--------------. |",
-    "| |     __       | |",
-    "| |    /  |      | |",
-    "| |    `| |      | |",
-    "| |     | |      | |",
-    "| |    _| |_     | |",
-    "| |   |_____|    | |",
-    "| |              | |",
-    "| '--------------' |",
-    " '----------------' "
+    "   \xDC\xDB\xBB",                   //    ▄█╗
+    " \xDB\xDB\xDB\xDB\xBA",             //  ████║
+    " \xC8\xCD\xDB\xDB\xBA",             //  ╚═██║
+    "   \xDB\xDB\xBA",                   //    ██║
+    "   \xDB\xDB\xBA",                   //    ██║
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xBB",     //  ██████╗
+    " \xC8\xCD\xCD\xCD\xCD\xCD\xBC"      //  ╚═════╝
 };
 
 const vector<string> sReady = {
-    " .----------------.  .----------------.  .----------------.  .----------------.  .----------------. ",
-    "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |",
-    "| |    _______   | || |  _________   | || |      __      | || |  _______     | || |  _________   | |",
-    "| |   /  ___  |  | || | |  _   _  |  | || |     /  \\     | || | |_   __ \\    | || | |  _   _  |  | |",
-    "| |  |  (__ \\_|  | || | |_/ | | \\_|  | || |    / /\\ \\    | || |   | |__) |   | || | |_/ | | \\_|  | |",
-    "| |   '.___`-.   | || |     | |      | || |   / ____ \\   | || |   |  __ /    | || |     | |      | |",
-    "| |  |`\\____) |  | || |    _| |_     | || | _/ /    \\ \\_ | || |  _| |  \\ \\_  | || |    _| |_     | |",
-    "| |  |_______.'  | || |   |_____|    | || ||____|  |____|| || | |____| |___| | || |   |_____|    | |",
-    "| |              | || |              | || |              | || |              | || |              | |",
-    "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |",
-    " '----------------'  '----------------'  '----------------'  '----------------'  '----------------' "
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xBB \xDB\xDB\xDB\xDB\xBB \xDB\xDB\xDB\xDB\xDB\xDB\xBB \xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xBB",
+    " \xDB\xDB\xC9\xCD\xCD\xCD\xBC\xC8\xCD\xDB\xDB\xC9\xCD\xBC\xDB\xDB\xC9\xCD\xDB\xDB\xBB\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xC8\xCD\xDB\xDB\xC9\xCD\xBC\xDB\xDB\xBA",
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xBB  \xDB\xDB\xBA  \xDB\xDB\xDB\xDB\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC  \xDB\xDB\xBA  \xDB\xDB\xBA",
+    " \xC8\xCD\xCD\xCD\xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xC9\xCD\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB  \xDB\xDB\xBA  \xC8\xCD\xBC",
+    " \xDB\xDB\xDB\xDB\xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xBA \xDB\xDB\xBA\xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xBB",
+    " \xC8\xCD\xCD\xCD\xCD\xCD\xBC  \xC8\xCD\xBC  \xC8\xCD\xBC \xC8\xCD\xBC\xC8\xCD\xBC  \xC8\xCD\xBC  \xC8\xCD\xBC  \xC8\xCD\xBC"
 };
-const vector<vector<string>> sCountDown = { sThree, sTwo, sOne, sReady };
+
+const vector<vector<string>> sCountDown = {sThree, sTwo, sOne, sReady};
 
 
 //=============================
@@ -156,7 +140,8 @@ void drawFrame(int x, int y, int w, int h, string title) {
     cout << BORDER_TR;
 
     if (!title.empty()) {
-        gotoxy(x + (w - title.length()) / 2, y); // Căn giữa tiêu đề
+        int titleLen = title.length() + 2;
+        gotoxy(x + (w - titleLen) / 2, y);
         cout << " " << title << " ";
     }
 
@@ -702,7 +687,7 @@ private:
         while (true) {
             system("cls");
 
-            int x = 10, y = 3, w = 40, h = 10;
+            int x = 10, y = 5, w = 40, h = 10;
             drawFrame(x, y, w, h, "TETRIS MASTER");
 
             gotoxy(x + 4, y + 3); cout << "1. Start Game";
