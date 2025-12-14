@@ -47,10 +47,13 @@ enum Color {
     WHITE = 15
 };
 
-
 void gotoxy(int x, int y) {
     COORD c = {x, y};
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+}
+
+void setColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
 void hideCursor() {
@@ -61,10 +64,6 @@ void hideCursor() {
     SetConsoleCursorInfo(consoleHandle, &info);
 }
 
-void setColor(int color) {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-}
-
 void drawFrame(int x, int y, int w, int h, string title) {
     gotoxy(x, y);
     cout << BORDER_TL;
@@ -72,7 +71,8 @@ void drawFrame(int x, int y, int w, int h, string title) {
     cout << BORDER_TR;
 
     if (!title.empty()) {
-        gotoxy(x + (w - title.length()) / 2, y);
+        int titleLen = title.length() + 2;
+        gotoxy(x + (w - titleLen) / 2, y);
         cout << " " << title << " ";
     }
 
@@ -219,10 +219,7 @@ public:
     vector<vector<int>> colorGrid;
 
     Board() {
-        grid      = vector<vector<char>>(HEIGHT - 4, vector<char>(WIDTH, ' '));
-        grid.emplace_back(vector<char>(WIDTH, BLOCK_CHAR));
-        grid.emplace_back(vector<char>(WIDTH, BLOCK_CHAR));
-        grid.emplace_back(vector<char>(WIDTH, BLOCK_CHAR));
+        grid      = vector<vector<char>>(HEIGHT - 1, vector<char>(WIDTH, ' '));
         colorGrid = vector<vector<int> >(HEIGHT, vector<int>(WIDTH, LIGHT_GRAY));
 
         for (vector<char>& row : grid)
@@ -598,7 +595,6 @@ public:
                 } else if (c == 's' && board.canMove( 0,1, currBlock)) {
                     currBlock->y++;
                     playSound(450, 700);
-                    score++;
                     bool isNew = checkHighScore();
                     drawUI(isNew);
                 } else if (c == SPACE_CHAR) {
@@ -679,9 +675,9 @@ public:
 
 
 // ====================
-// Intro Class
+// Scene Class
 // ====================
-class IntroScene {
+class Scene {
 private:
     const vector<string> BIG_LOGO = {
         "\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xBB \xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB",
@@ -691,6 +687,45 @@ private:
         "   \xDB\xDB\xBA   \xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB   \xDB\xDB\xBA   \xDB\xDB\xBA  \xDB\xDB\xBA\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA",
         "   \xC8\xCD\xBC   \xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC   \xC8\xCD\xBC   \xC8\xCD\xBC  \xC8\xCD\xBC\xC8\xCD\xBC\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC"
     };
+
+    const vector<string> sThree = {
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xBB",     // ██████╗
+        " \xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA", // ╚════██║
+        "  \xDB\xDB\xDB\xDB\xDB\xC9\xBC",    //  █████╔╝
+        "  \xC8\xCD\xCD\xCD\xDB\xDB\xBB",    //  ╚═══██╗
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC", // ██████╔╝
+        " \xC8\xCD\xCD\xCD\xCD\xCD\xBC "     // ╚═════╝
+    };
+
+    const vector<string> sTwo = {
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xBB",     // ██████╗
+        " \xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA", // ╚════██║
+        "  \xDB\xDB\xDB\xDB\xDB\xC9\xBC",    //  █████╔╝
+        " \xDB\xDB\xC9\xCD\xCD\xCD\xBC ",    // ██╔═══╝
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB", // ███████╗
+        " \xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC"  // ╚══════╝
+    };
+
+    const vector<string> sOne = {
+        "   \xDC\xDB\xBB",                   //    ▄█╗
+        " \xDB\xDB\xDB\xDB\xBA",             //  ████║
+        " \xC8\xCD\xDB\xDB\xBA",             //  ╚═██║
+        "   \xDB\xDB\xBA",                   //    ██║
+        "   \xDB\xDB\xBA",                   //    ██║
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xBB",     //  ██████╗
+        " \xC8\xCD\xCD\xCD\xCD\xCD\xBC"      //  ╚═════╝
+    };
+
+    const vector<string> sReady = {
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xBB \xDB\xDB\xDB\xDB\xBB \xDB\xDB\xDB\xDB\xDB\xDB\xBB \xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xBB",
+        " \xDB\xDB\xC9\xCD\xCD\xCD\xBC\xC8\xCD\xDB\xDB\xC9\xCD\xBC\xDB\xDB\xC9\xCD\xDB\xDB\xBB\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xC8\xCD\xDB\xDB\xC9\xCD\xBC\xDB\xDB\xBA",
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xBB  \xDB\xDB\xBA  \xDB\xDB\xDB\xDB\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC  \xDB\xDB\xBA  \xDB\xDB\xBA",
+        " \xC8\xCD\xCD\xCD\xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xC9\xCD\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB  \xDB\xDB\xBA  \xC8\xCD\xBC",
+        " \xDB\xDB\xDB\xDB\xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xBA \xDB\xDB\xBA\xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xBA  \xDB\xDB\xBB",
+        " \xC8\xCD\xCD\xCD\xCD\xCD\xBC  \xC8\xCD\xBC  \xC8\xCD\xBC \xC8\xCD\xBC\xC8\xCD\xBC  \xC8\xCD\xBC  \xC8\xCD\xBC  \xC8\xCD\xBC"
+    };
+
+    const vector<vector<string>> sCountDown = {sThree, sTwo, sOne, sReady};
 
     void drawLogo(int x, int y, int color) {
         setColor(color);
@@ -717,9 +752,28 @@ private:
 
         cout << "] " << percent << "%";
     }
+    
+    void drawCountDownFrame(const vector<string>& frame, int startX, int startY, bool blink = false) {
+        int tMax = blink ? 2 : 1;
+        for (int t = 0; t < tMax; t++) {
+            if (blink) {
+                setColor((t % 2 == 0) ?
+                        FOREGROUND_RED | FOREGROUND_INTENSITY :
+                        FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+            }
 
+            for (int i = 0; i < frame.size(); i++) {
+                gotoxy(startX, startY + i);
+                cout << frame[i];
+            }
+
+            if (blink) Sleep(300);
+        }
+
+        setColor(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+    }
 public:
-    void run() {
+    void runIntro() {
         system("cls");
         int startX = 10;
         int startY = 5;
@@ -755,12 +809,25 @@ public:
         drawLogo(startX, startY, WHITE);
 
         for (int i = 0; i <= 100; i += 4) {
-            drawLoadingBar(startX + 7, startY + 8, 30, i);
+            drawLoadingBar(startX + 6, startY + 8, 30, i);
             Sleep(30);
         }
 
         Sleep(500);
         setColor(LIGHT_GRAY);
+        system("cls");
+    }
+
+    void runCountDown() {
+        int x = 14, y = 7;
+
+        for (int i = 0; i < sCountDown.size(); i++) {
+            system("cls");
+            bool blink = (i < 3);
+            drawCountDownFrame(sCountDown[i], x, y, blink);
+            _sleep(800);
+        }
+
         system("cls");
     }
 };
@@ -771,7 +838,7 @@ private:
         while (true) {
             system("cls");
 
-            int x = 10, y = 3, w = 40, h = 10;
+            int x = 10, y = 5, w = 40, h = 10;
             drawFrame(x, y, w, h, "TETRIS MASTER");
 
             gotoxy(x + 4, y + 3); cout << "1. Start Game";
@@ -825,8 +892,8 @@ public:
     void runProgram() {
         hideCursor();
 
-        IntroScene intro;
-        intro.run();
+        Scene scene;
+        scene.runIntro();
 
         while (true) {
             int option = menu();
@@ -840,6 +907,7 @@ public:
                 bool playAgain = false;
 
                 do {
+                    scene.runCountDown();
                     TetrisGame tetris(mode);
                     playAgain = tetris.run();
                 } while (playAgain);
