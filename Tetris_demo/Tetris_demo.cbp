@@ -32,6 +32,18 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="Block.cpp" />
+		<Unit filename="Block.h" />
+		<Unit filename="Board.cpp" />
+		<Unit filename="Board.h" />
+		<Unit filename="GameManager.cpp" />
+		<Unit filename="GameManager.h" />
+		<Unit filename="Scene.cpp" />
+		<Unit filename="Scene.h" />
+		<Unit filename="TetrisGame.cpp" />
+		<Unit filename="TetrisGame.h" />
+		<Unit filename="Utilities.cpp" />
+		<Unit filename="Utilities.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
