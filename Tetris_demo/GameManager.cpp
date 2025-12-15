@@ -4,18 +4,19 @@ int GameManager::menu() {
     while (true) {
         system("cls");
 
-        int x = 10, y = 5, w = 40, h = 10;
+        int x = 10, y = 5, w = 40, h = 12;
         drawFrame(x, y, w, h, "TETRIS MASTER");
 
-        gotoxy(x + 4, y + 3);  cout << "1. Start Game";
-        gotoxy(x + 4, y + 4);  cout << "2. View High Score";
-        gotoxy(x + 4, y + 5);  cout << "3. Quit";
-        gotoxy(x + 12, y + 7); cout << "Enter your choice";
+        gotoxy(x + 4, y + 3);  cout << "1. Single Mode";
+        gotoxy(x + 4, y + 4);  cout << "2. PvP Mode";
+        gotoxy(x + 4, y + 5);  cout << "3. View High Score";
+        gotoxy(x + 4, y + 6);  cout << "4. Quit";
+        gotoxy(x + 12, y + 9); cout << "Enter your choice";
 
         char c = _getch();
         playSound(800, AUDIO_LENGTH);
 
-        if ('0' < c && c < '4') return c - '0';
+        if ('0' < c && c < '5') return c - '0';
     }
 }
 
@@ -81,7 +82,8 @@ void GameManager::runProgram() {
     while (true) {
         int option = menu();
 
-        if (option == 1) {
+        if (option == 1 || option == 2) {
+            GameMode mode = option == 1 ? GameMode::SOLO : GameMode::PVP;
             int level = chooseLevel();
 
             if (level == 4)
@@ -91,12 +93,12 @@ void GameManager::runProgram() {
 
             do {
                 scene.runCountDown();
-                TetrisGame tetris(level);
+                TetrisGame tetris(mode, level);
                 playAgain = tetris.run();
             } while (playAgain);
-        } else if (option == 2) {
+        } else if (option == 3) {
             showHighScore();
-        } else if (option == 3)
+        } else if (option == 4)
             break;
     }
 

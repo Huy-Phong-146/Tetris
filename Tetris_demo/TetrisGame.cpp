@@ -1,125 +1,166 @@
 #include "TetrisGame.h"
-#include <unordered_map>
 
-BaseBlock* TetrisGame::createRandomBlock() {
-    int r = rand() % 7;
+TetrisGame::TetrisGame(GameMode mode, int level) : gameMode(mode), level(level) {
+    loadHighScores();
+    int initGameSpeed = DEFAULT_GAME_SPEED - 40 * (level - 1);
 
-    switch (r) {
-        case 0: return new BlockI();
-        case 1: return new BlockO();
-        case 2: return new BlockT();
-        case 3: return new BlockL();
-        case 4: return new BlockJ();
-        case 5: return new BlockS();
-        default : return new BlockZ();
+    system("cls");
+
+    PlayerState p1(1, 4, initGameSpeed, 'a', 'd', 'w', 's', SPACE_CHAR);
+    p1.currBlock = createRandomBlock();
+    p1.nextBlock = createRandomBlock();
+    players.push_back(p1);
+
+    if (mode == GameMode::PVP) {
+        PlayerState p2(2, 65, initGameSpeed, 75, 77, 72, 80, 13);
+        p2.currBlock = createRandomBlock();
+        p2.nextBlock = createRandomBlock();
+        players.push_back(p2);
+    }
+
+    for (auto& p : players) {
+        p.board.draw();
+        drawUI(p);
     }
 }
 
-void TetrisGame::increaseSpeed() {
-    if (gameSpeed > MAX_GAME_SPEED)
-        gameSpeed -= D_SPEED_DECREASE;
-}
-
-void TetrisGame::loadHighScores() {
-    ifstream file("high_scores.dat");
-    int value;
-    int key;
-
-    highScores.clear();
-
-    while (file >> key >> value)
-        highScores[key] = value;
-
-    if (!highScores.count(level))
-        highScores[level] = 0;
-}
-
-void TetrisGame::saveHighScores() {
-    ofstream file("high_scores.dat");
-
-    for (auto& [key, value] : highScores)
-        file << key << " " << value << '\n';
-}
-
-bool TetrisGame::checkHighScore() {
-    if (score <= highScores[level])
-        return false;
-
-    highScores[level] = score;
-    saveHighScores();
-    return true;
-}
-
-void TetrisGame::drawNextBlock() {
-    int xPos = WIDTH * 2 + 5;
-    int yPos = 11;
-
-    for(int i = 0; i < BLOCK_SIZE; i++) {
-        gotoxy(xPos + 8, yPos + 2 + i);
-        cout << "        ";
+TetrisGame::~TetrisGame() {
+    for (auto& p : players) {
+        if (p.currBlock) delete p.currBlock;
+        if (p.nextBlock) delete p.nextBlock;
     }
+}
 
-    setColor(nextBlock->blockColor);
+bool TetrisGame::run() {
+    const int FRAME_TICK = 30;
 
-    for (int i = 0; i < BLOCK_SIZE; i++) {
-        for (int j = 0; j < BLOCK_SIZE; j++) {
-            gotoxy(xPos + 8 + j * 2, yPos + 2 + i);
-            cout << nextBlock->shape[i][j] << nextBlock->shape[i][j];
+    while (true) {
+        if (_kbhit()) {
+            int key = _getch();
+            if (key == 0 || key == 224) key = _getch();
+            else key = tolower(key);
+
+            if (key == 'p') {
+                playSound(800, AUDIO_LENGTH);
+                int choice = showPauseMenu();
+
+                if (choice == 1) {
+                    system("cls");
+
+                    for (auto& p : players) {
+                        p.board.draw();
+                        drawUI(p);
+                    }
+                } else if (choice == 2) {
+                    return true;
+                } else if (choice == 3)
+                    return false;
+            }
+
+            if (key == 'q') {
+                playSound(800, AUDIO_LENGTH);
+                return false;
+            }
+
+            for (auto& player : players)
+                handleInput(player, key);
         }
+
+        for (auto& p : players) {
+            if (p.isGameOver) continue;
+
+            p.board.boardDeleteBlock(p.currBlock);
+            p.timer += FRAME_TICK;
+
+            if (p.timer >= p.gameSpeed) {
+                updatePhysics(p);
+                p.timer = 0;
+            }
+
+            p.board.blockToBoard(p.currBlock);
+            p.board.draw();
+            p.timer += FRAME_TICK;
+        }
+
+        if (gameMode == GameMode::SOLO) {
+            if (players[0].isGameOver) return false;
+        } else {
+            if (players[0].isGameOver || players[1].isGameOver) return false;
+        }
+
+        Sleep(FRAME_TICK);
     }
-
-    setColor(WHITE);
+    return false;
 }
 
-void TetrisGame::drawUI(bool isNewRecord) {
-    int xPos = WIDTH * 2 + 5;
-    int boxWidth = 22;
+void TetrisGame::handleInput(PlayerState& p, int key) {
+    if (p.isGameOver) return;
 
-    drawFrame(xPos, 2, boxWidth, 4, "SCORE");
-    gotoxy(xPos + 2, 4);
-    cout << "        ";
-    gotoxy(xPos + 2, 4);
-    cout << score;
+    p.board.boardDeleteBlock(p.currBlock);
 
-    int comboBoxX = xPos + boxWidth + 2;
-    int comboBoxW = 16;
+    if (key == p.kLeft && p.board.canMove(-1, 0, p.currBlock)) {
+        p.currBlock->x--;
+        playSound(400, AUDIO_LENGTH);
+    } else if (key == p.kRight && p.board.canMove(1, 0, p.currBlock)) {
+        p.currBlock->x++;
+        playSound(400, AUDIO_LENGTH);
+    } else if (key == p.kSoftDrop && p.board.canMove(0, 1, p.currBlock)) {
+        p.currBlock->y++;
+        p.score += 1;
+         drawUI(p);
+    } else if (key == p.kHardDrop) {
+        while (p.board.canMove(0, 1, p.currBlock))
+            p.currBlock->y++;
 
-    drawFrame(comboBoxX, 2, comboBoxW, 4, "XCOMBO");
-    gotoxy(comboBoxX + 2, 4);
-    cout << "        ";
-    gotoxy(comboBoxX + 2, 4);
-
-    if (comboCount > 0)
-        cout << "x" << (comboCount + 1);
-    else
-        cout << "x0";
-
-    string difficultyName =
-        (level == 1) ? "NORMAL" :
-        (level == 2) ? "MEDIUM" : "HARD";
-
-    string highScoreTitle = isNewRecord ? "NEW RECORD!" : "HIGH SCORE (" + difficultyName + ")";
-    drawFrame(xPos, 7, boxWidth, 4, highScoreTitle);
-
-    gotoxy(xPos + 2, 9);
-    cout << highScores[level];
-
-    drawFrame(xPos, 12, boxWidth, 6, "NEXT BLOCK");
-    drawNextBlock();
-
-    int yControl = 19;
-
-    drawFrame(xPos, yControl, boxWidth, 9, "CONTROLS");
-    gotoxy(xPos + 2, yControl + 1);  cout << "A     : Move Left";
-    gotoxy(xPos + 2, yControl + 2);  cout << "D     : Move Right";
-    gotoxy(xPos + 2, yControl + 3);  cout << "S     : Soft Drop";
-    gotoxy(xPos + 2, yControl + 4);  cout << "SPACE : Hard Drop";
-    gotoxy(xPos + 2, yControl + 5);  cout << "W     : Rotate";
-    gotoxy(xPos + 2, yControl + 6);  cout << "P     : Pause Game";
-    gotoxy(xPos + 2, yControl + 7);  cout << "Q     : Quit Game";
+        p.timer = p.gameSpeed + 1;
+        playSound(800, AUDIO_LENGTH);
+    } else if (key == p.kRotate) {
+        p.currBlock->rotate(p.board.grid);
+        playSound(600, AUDIO_LENGTH);
+    }
 }
 
-void TetrisGame::scoreCalculate(int linesCleared){
+void TetrisGame::updatePhysics(PlayerState& p) {
+    if (p.isGameOver) return;
+
+    p.board.boardDeleteBlock(p.currBlock);
+
+    if (p.board.canMove(0, 1, p.currBlock)) {
+        p.currBlock->y++;
+    } else {
+        playSound(200, AUDIO_LENGTH);
+        p.board.blockToBoard(p.currBlock);
+
+        int linesCleared = p.board.removeLine();
+
+        if (linesCleared > 0) {
+            p.comboCount++;
+            scoreCalculate(p, linesCleared);
+            increaseSpeed(p);
+
+            bool isNew = checkHighScore(p.score);
+            drawUI(p);
+        } else {
+            p.comboCount = 0;
+            drawUI(p); // Cập nhật lại UI để xóa combo text
+        }
+
+        delete p.currBlock;
+        p.currBlock = p.nextBlock;
+        p.nextBlock = createRandomBlock();
+
+        if (!p.board.canMove(0, 0, p.currBlock)) {
+            playSound(300, AUDIO_LENGTH + 100);
+            p.isGameOver = true;
+            gameOverEffect(p);
+            return;
+        }
+
+        drawNextBlock(p);
+    }
+}
+
+void TetrisGame::scoreCalculate(PlayerState& p, int linesCleared) {
     int baseScore = 0;
     switch (linesCleared){
         case 1: baseScore = 100; break;
@@ -129,178 +170,122 @@ void TetrisGame::scoreCalculate(int linesCleared){
         default: return;
     }
 
-    int levelMultiplier = (level);
-    int comboBonus = max(0, comboCount - 1) * 50 * linesCleared;
-    score += baseScore * levelMultiplier + comboBonus;
+    int comboBonus = max(0, p.comboCount - 1) * 50 * linesCleared;
+    p.score += baseScore * level + comboBonus;
 }
 
-void TetrisGame::gameOverEffect() {
-    for (int i = 0; i < HEIGHT - 1; i++)
-        for (int j = 1; j < WIDTH - 1; j++)
-            if (board.grid[i][j] != ' ')
-                board.colorGrid[i][j] = DARK_GRAY;
+void TetrisGame::increaseSpeed(PlayerState& p) {
+    if (p.gameSpeed > 50) p.gameSpeed -= D_SPEED_DECREASE;
+}
 
-    _sleep(1000);
+void TetrisGame::drawUI(const PlayerState& p, bool isNewRecord) {
+    int xPos = p.board.offsetX + WIDTH * 2 + 2;
+    int boxWidth = 22;
+
+    gotoxy(xPos, 1);
+    cout << "PLAYER " << p.id;
+
+    drawFrame(xPos, 2, boxWidth, 4, "SCORE");
+    gotoxy(xPos + 2, 4); cout << p.score;
+
+    drawFrame(xPos, 7, boxWidth, 4, "XCOMBO");
+    gotoxy(xPos + 2, 9); printf("x%d", p.comboCount ? p.comboCount + 1 : 0);
+
+    drawFrame(xPos, 12, boxWidth, 6, "NEXT BLOCK");
+    drawNextBlock(p);
+}
+
+void TetrisGame::drawNextBlock(const PlayerState& p) {
+    int xPos = p.board.offsetX + WIDTH * 2 + 5;
+    int yPos = 11;
+
+    for(int i = 0; i < 4; i++) {
+        gotoxy(xPos + 4, yPos + 2 + i); cout << "        ";
+    }
+
+    setColor(p.nextBlock->blockColor);
+
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            gotoxy(xPos + 4 + j * 2, yPos + 2 + i);
+            cout << p.nextBlock->shape[i][j] << p.nextBlock->shape[i][j];
+        }
+    }
+
+    setColor(WHITE);
+}
+
+void TetrisGame::gameOverEffect(PlayerState& p) {
+    for (int i = 0; i < HEIGHT; i++) {
+        for (int j = 1; j < WIDTH - 1; j++) {
+            if (p.board.grid[i][j] != ' ')
+                p.board.colorGrid[i][j] = DARK_GRAY;
+        }
+    }
+
+    Sleep(1000);
 
     for (int i = HEIGHT - 2; i >= 0; i--) {
         for (int j = 1; j < WIDTH - 1; j++) {
-            board.grid[i][j] = BLOCK_CHAR;
-            board.colorGrid[i][j] = RED;
+            p.board.grid[i][j] = BLOCK_CHAR;
+            p.board.colorGrid[i][j] = RED;
         }
 
         if (i > 4)
             playSound(600 - (i * 20), 125);
 
-        board.draw();
-        _sleep(60);
+        p.board.draw();
+        Sleep(60);
     }
 
-    _sleep(500);
+    Sleep(500);
     system("cls");
 
-    int x = 10, y = 5, w = 40, h = 10;
+    setColor(WHITE);
+}
 
-    drawFrame(x, y, w, h, "GAME OVER");
+BaseBlock* TetrisGame::createRandomBlock() {
+    int r = rand() % 7;
+    switch (r) {
+        case 0: return new BlockI(); case 1: return new BlockO();
+        case 2: return new BlockT(); case 3: return new BlockL();
+        case 4: return new BlockJ(); case 5: return new BlockS();
+        default: return new BlockZ();
+    }
+}
 
-    gotoxy(x + 8, y + 4); cout << "Your Score: " << score;
-    gotoxy(x + 8, y + 6); cout << "Press any key to return...";
+void TetrisGame::loadHighScores() {
+    ifstream file("high_scores.dat");
+    int k, v;
+    while(file >> k >> v) highScores[k] = v;
+    if(!highScores.count(level)) highScores[level] = 0;
+}
 
-    getch();
+void TetrisGame::saveHighScores() {
+    ofstream file("high_scores.dat");
+    for(auto& [k, v] : highScores) file << k << ' ' << v << '\n';
+}
+
+bool TetrisGame::checkHighScore(int score) {
+    if (score <= highScores[level])
+        return false;
+
+    highScores[level] = score;
+    saveHighScores();
+    return true;
 }
 
 int TetrisGame::showPauseMenu() {
     system("cls");
     int x = 10, y = 5, w = 40, h = 10;
-
     drawFrame(x, y, w, h, "PAUSE");
     gotoxy(x + 4, y + 3); cout << "1. Resume";
     gotoxy(x + 4, y + 4); cout << "2. Restart";
     gotoxy(x + 4, y + 5); cout << "3. Quit";
-    gotoxy(x + 12, y + 7); cout << "Enter your choice";
 
     char c;
-
     while (true) {
         c = _getch();
-        playSound(800, AUDIO_LENGTH);
-
-        if ('0' < c && c < '4')
-            return c -'0';
+        if ('0' < c && c < '4') return c - '0';
     }
-}
-
-TetrisGame::TetrisGame(int level) : level(level) {
-    gameSpeed = DEFAULT_GAME_SPEED - 40 * (level - 1);
-
-    system("cls");
-
-    currBlock = createRandomBlock();
-    nextBlock = createRandomBlock();
-    score = 0;
-    comboCount = 0;
-    loadHighScores();
-    drawUI();
-}
-
-TetrisGame::~TetrisGame() {
-    delete currBlock;
-    delete nextBlock;
-}
-
-bool TetrisGame::run() {
-    int timer = 0;
-
-    while (1){
-        board.boardDeleteBlock(currBlock);
-
-        if (kbhit()){
-            char c = getch();
-            c = tolower(c);
-
-            if (c == 'a' && board.canMove(-1,0, currBlock)) {
-                currBlock->x--;
-                playSound(400, AUDIO_LENGTH);
-            } else if (c == 'd' && board.canMove( 1,0, currBlock)) {
-                currBlock->x++;
-                playSound(400, AUDIO_LENGTH);
-            } else if (c == 's' && board.canMove( 0,1, currBlock)) {
-                currBlock->y++;
-                playSound(450, AUDIO_LENGTH);
-                bool isNew = checkHighScore();
-                drawUI(isNew);
-            } else if (c == SPACE_CHAR) {
-                while (board.canMove(0, 1, currBlock))
-                    currBlock->y++;
-
-                timer = gameSpeed + 1;
-                playSound(800, AUDIO_LENGTH);
-            } else if (c == 'w') {
-                currBlock->rotate(board.grid);
-                playSound(600, AUDIO_LENGTH);
-            } else if (c == 'q') {
-                playSound(800, AUDIO_LENGTH);
-                return false;
-            } else if (c == 'p') {
-                playSound(800, AUDIO_LENGTH);
-                int choice = showPauseMenu();
-
-                if (choice == 1) {
-                    system("cls");
-                    board.draw();
-                    drawUI(checkHighScore());
-                } else if (choice == 2)
-                    return true;
-                else if (choice == 3) {
-                    return false;
-                }
-            }
-    }
-
-        if (timer >= gameSpeed) {
-            if (board.canMove(0,1, currBlock))
-                currBlock->y++;
-            else {
-                playSound(200, AUDIO_LENGTH);
-                board.blockToBoard(currBlock);
-
-                int linesCleared = board.removeLine();
-
-                if (linesCleared > 0) {;
-                    comboCount = (comboCount == 0) ? 1 : comboCount + 1;
-                    scoreCalculate(linesCleared);
-
-                    increaseSpeed();
-                    bool isNew = checkHighScore();
-                    drawUI(isNew);
-                }
-                else{
-                    comboCount = 0;
-                    drawUI(false);
-                }
-
-                delete currBlock;
-                currBlock = nextBlock;
-                nextBlock = createRandomBlock();
-
-                if (!board.canMove(0, 0, currBlock)) {
-                    playSound(300, AUDIO_LENGTH + 100);
-                    gameOverEffect();
-                    return false;
-                }
-
-                drawNextBlock();
-            }
-
-            timer = 0;
-        }
-
-        board.blockToBoard(currBlock);
-
-        board.draw();
-
-        _sleep(30);
-        timer += 30;
-    }
-
-    return false;
 }
