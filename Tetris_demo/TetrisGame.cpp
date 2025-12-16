@@ -5,22 +5,19 @@ TetrisGame::TetrisGame(GameMode mode, int level) : gameMode(mode), level(level) 
     int initGameSpeed = DEFAULT_GAME_SPEED - 40 * (level - 1);
 
     system("cls");
-    int offsetXPlayer1 = 35;
-
-    if (mode == GameMode::PVP) {
-        offsetXPlayer1 = 4;
-
-        PlayerState p2(2, 65, initGameSpeed, 75, 77, 72, 80, 13);
-        p2.currBlock = createRandomBlock();
-        p2.nextBlock = createRandomBlock();
-        players.push_back(p2);
-    }
-
+    int offsetXPlayer1 = mode == GameMode::PVP ? 4 : 35;
 
     PlayerState p1(1, offsetXPlayer1, initGameSpeed, 'a', 'd', 'w', 's', SPACE_CHAR);
     p1.currBlock = createRandomBlock();
     p1.nextBlock = createRandomBlock();
     players.push_back(p1);
+
+    if (mode == GameMode::PVP) {
+        PlayerState p2(2, 65, initGameSpeed, 75, 77, 72, 80, 13);
+        p2.currBlock = createRandomBlock();
+        p2.nextBlock = createRandomBlock();
+        players.push_back(p2);
+    }
 
     for (auto& p : players) {
         p.board.draw();
@@ -87,13 +84,35 @@ bool TetrisGame::run() {
         }
 
         if (gameMode == GameMode::SOLO) {
-            if (players[0].isGameOver) return false;
+            if (players[0].isGameOver) {
+                system("cls");
+                int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 10;
+                drawFrame(x, y, w, h, "GAME OVER");
+                gotoxy(x + 8, y + 4); cout << "Your Score: " << players[0].score;
+                gotoxy(x + 8, y + 6); cout << "Press any key to return...";
+                getch();
+
+                return false;
+            }
         } else {
-            if (players[0].isGameOver || players[1].isGameOver) return false;
+            if (players[0].isGameOver || players[1].isGameOver) {
+                system("cls");
+                int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 10;
+                int id_winner = players[0].isGameOver ? 2 : 1;
+                string title = "PLAYER " + to_string(id_winner) + " WIN";
+
+                drawFrame(x, y, w, h, title);
+                gotoxy(x + 8, y + 4); cout << "Score: " << players[id_winner - 1].score;
+                gotoxy(x + 8, y + 6); cout << "Press any key to return...";
+                getch();
+
+                return false;
+            }
         }
 
         Sleep(FRAME_TICK);
     }
+
     return false;
 }
 
@@ -229,6 +248,7 @@ void TetrisGame::gameOverEffect(PlayerState& p) {
         }
     }
 
+    playSound(300, 500);
     Sleep(1000);
 
     for (int i = HEIGHT - 2; i >= 0; i--) {
@@ -238,13 +258,13 @@ void TetrisGame::gameOverEffect(PlayerState& p) {
         }
 
         if (i > 4)
-            playSound(600 - (i * 20), 125);
+            playSound(600 - (i * 20), 140);
 
         p.board.draw();
         Sleep(60);
     }
 
-    Sleep(500);
+    Sleep(700);
     system("cls");
 
     setColor(WHITE);
