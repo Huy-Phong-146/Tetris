@@ -35,7 +35,7 @@ bool TetrisGame::run() {
     const int FRAME_TICK = 30;
 
     while (true) {
-        if (_kbhit()) {
+        while (_kbhit()) {
             int key = _getch();
             if (key == 0 || key == 224) key = _getch();
             else key = tolower(key);
@@ -142,7 +142,7 @@ void TetrisGame::updatePhysics(PlayerState& p) {
             drawUI(p);
         } else {
             p.comboCount = 0;
-            drawUI(p); // Cập nhật lại UI để xóa combo text
+            drawUI(p);
         }
 
         delete p.currBlock;
@@ -258,7 +258,8 @@ void TetrisGame::loadHighScores() {
     ifstream file("high_scores.dat");
     int k, v;
     while(file >> k >> v) highScores[k] = v;
-    if(!highScores.count(level)) highScores[level] = 0;
+    int curr_mode = level + (gameMode == GameMode::PVP ? 1 : 0) * 3;
+    if(!highScores.count(curr_mode)) highScores[curr_mode] = 0;
 }
 
 void TetrisGame::saveHighScores() {
@@ -267,10 +268,12 @@ void TetrisGame::saveHighScores() {
 }
 
 bool TetrisGame::checkHighScore(int score) {
-    if (score <= highScores[level])
+    int curr_mode = level + (gameMode == GameMode::PVP ? 1 : 0) * 3;
+
+    if (score <= highScores[curr_mode])
         return false;
 
-    highScores[level] = score;
+    highScores[curr_mode] = score;
     saveHighScores();
     return true;
 }
