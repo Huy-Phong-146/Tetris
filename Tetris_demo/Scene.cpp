@@ -95,8 +95,8 @@ void Scene::drawCountDownFrame(const vector<string>& frame, int startX, int star
 
 void Scene::runIntro() {
     system("cls");
-    int startX = 10;
-    int startY = 5;
+    int startX = 35;
+    int startY = 10;
 
     vector<int> sequence = {
         CYAN, YELLOW, PURPLE, GREEN, RED, BLUE, RED
@@ -140,17 +140,21 @@ void Scene::runIntro() {
 }
 
 void Scene::runCountDown() {
-    int x = 14, y = 7;
-    const vector<vector<string>> sCountDown = {S_THREE, S_TWO, S_ONE, S_READY};
+    int x = 55;
+    int y = 10;
+    const vector<vector<string>> S_COUNTDOWN = {S_THREE, S_TWO, S_ONE, S_READY};
 
-    for (int i = 0; i < sCountDown.size(); i++) {
+    for (int i = 0, x_pos = x; i < S_COUNTDOWN.size(); i++) {
         system("cls");
         bool blink = (i < 3);
 
         if (i < 3) playSound(600, AUDIO_LENGTH);
-        else playSound(1200, 600);
+        else playSound(1200, 650);
 
-        drawCountDownFrame(sCountDown[i], x, y, blink);
+        if (i == S_COUNTDOWN.size() - 1)
+            x_pos -= 18;
+
+        drawCountDownFrame(S_COUNTDOWN[i], x_pos, y, blink);
         _sleep(800);
     }
 

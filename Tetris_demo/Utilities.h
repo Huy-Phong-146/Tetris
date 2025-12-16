@@ -17,6 +17,8 @@ using namespace std;
 #define MAX_GAME_SPEED 50
 #define D_SPEED_DECREASE 10
 #define AUDIO_LENGTH 170
+#define X_POS_FRAME 39
+#define Y_POS_FRAME 8
 
 const char SPACE_CHAR = (char)32;
 const char BLOCK_CHAR = (char)219;

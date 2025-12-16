@@ -5,18 +5,22 @@ TetrisGame::TetrisGame(GameMode mode, int level) : gameMode(mode), level(level) 
     int initGameSpeed = DEFAULT_GAME_SPEED - 40 * (level - 1);
 
     system("cls");
-
-    PlayerState p1(1, 4, initGameSpeed, 'a', 'd', 'w', 's', SPACE_CHAR);
-    p1.currBlock = createRandomBlock();
-    p1.nextBlock = createRandomBlock();
-    players.push_back(p1);
+    int offsetXPlayer1 = 35;
 
     if (mode == GameMode::PVP) {
+        offsetXPlayer1 = 4;
+
         PlayerState p2(2, 65, initGameSpeed, 75, 77, 72, 80, 13);
         p2.currBlock = createRandomBlock();
         p2.nextBlock = createRandomBlock();
         players.push_back(p2);
     }
+
+
+    PlayerState p1(1, offsetXPlayer1, initGameSpeed, 'a', 'd', 'w', 's', SPACE_CHAR);
+    p1.currBlock = createRandomBlock();
+    p1.nextBlock = createRandomBlock();
+    players.push_back(p1);
 
     for (auto& p : players) {
         p.board.draw();
@@ -35,7 +39,7 @@ bool TetrisGame::run() {
     const int FRAME_TICK = 30;
 
     while (true) {
-        if (_kbhit()) {
+        while (_kbhit()) {
             int key = _getch();
             if (key == 0 || key == 224) key = _getch();
             else key = tolower(key);
@@ -106,11 +110,13 @@ void TetrisGame::handleInput(PlayerState& p, int key) {
         playSound(400, AUDIO_LENGTH);
     } else if (key == p.kSoftDrop && p.board.canMove(0, 1, p.currBlock)) {
         p.currBlock->y++;
-        p.score += 1;
+        p.score++;
          drawUI(p);
     } else if (key == p.kHardDrop) {
-        while (p.board.canMove(0, 1, p.currBlock))
+        while (p.board.canMove(0, 1, p.currBlock)) {
             p.currBlock->y++;
+            p.score += 2;
+        }
 
         p.timer = p.gameSpeed + 1;
         playSound(800, AUDIO_LENGTH);
@@ -142,7 +148,7 @@ void TetrisGame::updatePhysics(PlayerState& p) {
             drawUI(p);
         } else {
             p.comboCount = 0;
-            drawUI(p); // Cập nhật lại UI để xóa combo text
+            drawUI(p);
         }
 
         delete p.currBlock;
@@ -180,34 +186,34 @@ void TetrisGame::increaseSpeed(PlayerState& p) {
 
 void TetrisGame::drawUI(const PlayerState& p, bool isNewRecord) {
     int xPos = p.board.offsetX + WIDTH * 2 + 2;
+    int yPos = p.board.offsetY + 1;
     int boxWidth = 22;
 
-    gotoxy(xPos, 1);
-    cout << "PLAYER " << p.id;
+    gotoxy(xPos, yPos - 2); cout << "PLAYER " << p.id;
 
-    drawFrame(xPos, 2, boxWidth, 4, "SCORE");
-    gotoxy(xPos + 2, 4); cout << p.score;
+    drawFrame(xPos, yPos, boxWidth, 4, "SCORE");
+    gotoxy(xPos + 2, yPos + 2); cout << p.score;
 
-    drawFrame(xPos, 7, boxWidth, 4, "XCOMBO");
-    gotoxy(xPos + 2, 9); printf("x%d", p.comboCount ? p.comboCount + 1 : 0);
+    drawFrame(xPos, yPos + 5, boxWidth, 4, "XCOMBO");
+    gotoxy(xPos + 2, yPos + 7); printf("x%d", p.comboCount ? p.comboCount + 1 : 0);
 
-    drawFrame(xPos, 12, boxWidth, 6, "NEXT BLOCK");
+    drawFrame(xPos, yPos + 10, boxWidth, 6, "NEXT BLOCK");
     drawNextBlock(p);
 }
 
 void TetrisGame::drawNextBlock(const PlayerState& p) {
     int xPos = p.board.offsetX + WIDTH * 2 + 5;
-    int yPos = 11;
+    int yPos = p.board.offsetY + 9;
 
     for(int i = 0; i < 4; i++) {
-        gotoxy(xPos + 4, yPos + 2 + i); cout << "        ";
+        gotoxy(xPos + 4, yPos + 3 + i); cout << "        ";
     }
 
     setColor(p.nextBlock->blockColor);
 
     for (int i = 0; i < BLOCK_SIZE; i++) {
         for (int j = 0; j < BLOCK_SIZE; j++) {
-            gotoxy(xPos + 4 + j * 2, yPos + 2 + i);
+            gotoxy(xPos + 4 + j * 2, yPos + 3 + i);
             cout << p.nextBlock->shape[i][j] << p.nextBlock->shape[i][j];
         }
     }
@@ -277,11 +283,11 @@ bool TetrisGame::checkHighScore(int score) {
 
 int TetrisGame::showPauseMenu() {
     system("cls");
-    int x = 10, y = 5, w = 40, h = 10;
+    int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 7;
     drawFrame(x, y, w, h, "PAUSE");
-    gotoxy(x + 4, y + 3); cout << "1. Resume";
-    gotoxy(x + 4, y + 4); cout << "2. Restart";
-    gotoxy(x + 4, y + 5); cout << "3. Quit";
+    gotoxy(x + 4, y + 2); cout << "1. Resume";
+    gotoxy(x + 4, y + 3); cout << "2. Restart";
+    gotoxy(x + 4, y + 4); cout << "3. Quit";
 
     char c;
     while (true) {

@@ -4,7 +4,7 @@ int GameManager::menu() {
     while (true) {
         system("cls");
 
-        int x = 10, y = 5, w = 40, h = 12;
+        int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 12;
         drawFrame(x, y, w, h, "TETRIS MASTER");
 
         gotoxy(x + 4, y + 3);  cout << "1. Single Mode";
@@ -24,7 +24,7 @@ int GameManager::chooseLevel() {
     while (true) {
         system("cls");
 
-        int x = 10, y = 5, w = 40, h = 10;
+        int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 10;
         drawFrame(x, y, w, h, "SELECT LEVEL");
 
         gotoxy(x + 4, y + 3);  cout << "1. Normal Level";
@@ -61,7 +61,7 @@ void GameManager::showHighScore() {
     int hsMedium = scores[2];
     int hsHard   = scores[3];
 
-    int x = 10, y = 5, w = 40, h = 12;
+    int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 12;
     drawFrame(x, y, w, h, "HIGH SCORES");
 
     gotoxy(x + 6, y + 4); cout << "NORMAL : " << hsNormal;

@@ -29,7 +29,7 @@ struct PlayerState {
 
     PlayerState(int id, int _offsetX, int _gameSpeed,
                 char _kLeft, char _kRight, char _kRotate, char _kSoftDrop, char _kHardDrop)
-        : id(id), board(_offsetX, 3), gameSpeed(_gameSpeed), currBlock(nullptr), nextBlock(nullptr),
+        : id(id), board(_offsetX, 5), gameSpeed(_gameSpeed), currBlock(nullptr), nextBlock(nullptr),
           timer(0), score(0), comboCount(0), isGameOver(false),
           kLeft(_kLeft), kRight(_kRight), kRotate(_kRotate), kSoftDrop(_kSoftDrop), kHardDrop(_kHardDrop) {}
 };
