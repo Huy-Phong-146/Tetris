@@ -24,14 +24,14 @@ int GameManager::chooseLevel() {
     while (true) {
         system("cls");
 
-        int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 10;
+        int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 11;
         drawFrame(x, y, w, h, "SELECT LEVEL");
 
         gotoxy(x + 4, y + 3);  cout << "1. Normal Level";
         gotoxy(x + 4, y + 4);  cout << "2. Medium Level";
         gotoxy(x + 4, y + 5);  cout << "3. Hard Level";
         gotoxy(x + 4, y + 6);  cout << "4. Back";
-        gotoxy(x + 12, y + 7); cout << "Enter your choice";
+        gotoxy(x + 12, y + 8); cout << "Enter your choice";
 
         char mode = _getch();
         playSound(800, AUDIO_LENGTH);
@@ -57,18 +57,27 @@ void GameManager::showHighScore() {
     system("cls");
     unordered_map<int, int> scores = loadHighScore();
 
-    int hsNormal = scores[1];
-    int hsMedium = scores[2];
-    int hsHard   = scores[3];
+    int hsNormalSingle = scores[1];
+    int hsMediumSingle = scores[2];
+    int hsHardSingle   = scores[3];
+    int hsNormalPvP    = scores[4];
+    int hsMediumPvP    = scores[5];
+    int hsHardPvP      = scores[6];
 
-    int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 12;
+    int x = X_POS_FRAME, y = Y_POS_FRAME, w = 40, h = 19;
     drawFrame(x, y, w, h, "HIGH SCORES");
 
-    gotoxy(x + 6, y + 4); cout << "NORMAL : " << hsNormal;
-    gotoxy(x + 6, y + 5); cout << "MEDIUM : " << hsMedium;
-    gotoxy(x + 6, y + 6); cout << "HARD   : " << hsHard;
+    gotoxy(x + 14, y + 3); cout << "SINGLE MODE";
+    gotoxy(x + 6, y + 5);  cout << "NORMAL : " << hsNormalSingle;
+    gotoxy(x + 6, y + 6);  cout << "MEDIUM : " << hsMediumSingle;
+    gotoxy(x + 6, y + 7);  cout << "HARD   : " << hsHardSingle;
 
-    gotoxy(x + 9, y + 9); cout << "Press any key to return";
+    gotoxy(x + 15, y + 9); cout << "PVP MODE";
+    gotoxy(x + 6, y + 11); cout << "NORMAL : " << hsNormalPvP;
+    gotoxy(x + 6, y + 12); cout << "MEDIUM : " << hsMediumPvP;
+    gotoxy(x + 6, y + 13); cout << "HARD   : " << hsHardPvP;
+
+    gotoxy(x + 9, y + 16); cout << "Press any key to return";
     getch();
     playSound(600, AUDIO_LENGTH);
 }

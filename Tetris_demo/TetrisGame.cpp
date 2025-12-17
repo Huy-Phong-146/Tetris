@@ -284,7 +284,8 @@ void TetrisGame::loadHighScores() {
     ifstream file("high_scores.dat");
     int k, v;
     while(file >> k >> v) highScores[k] = v;
-    if(!highScores.count(level)) highScores[level] = 0;
+    int curr_mode = level + (gameMode == GameMode::PVP ? 1 : 0) * 3;
+    if(!highScores.count(curr_mode)) highScores[curr_mode] = 0;
 }
 
 void TetrisGame::saveHighScores() {
@@ -293,10 +294,12 @@ void TetrisGame::saveHighScores() {
 }
 
 bool TetrisGame::checkHighScore(int score) {
-    if (score <= highScores[level])
+    int curr_mode = level + (gameMode == GameMode::PVP ? 1 : 0) * 3;
+
+    if (score <= highScores[curr_mode])
         return false;
 
-    highScores[level] = score;
+    highScores[curr_mode] = score;
     saveHighScores();
     return true;
 }
