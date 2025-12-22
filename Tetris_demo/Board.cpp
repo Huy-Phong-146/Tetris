@@ -42,10 +42,17 @@ void Board::draw() {
 }
 
 void Board::boardDeleteBlock(BaseBlock* currBlock) {
-    for (int i = 0; i < BLOCK_SIZE; i++)
-        for (int j = 0; j < BLOCK_SIZE; j++)
-            if (currBlock->shape[i][j] != ' ' && currBlock->y + j < HEIGHT)
-                grid[currBlock->y + i][currBlock->x + j] = ' ';
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        for (int j = 0; j < BLOCK_SIZE; j++) {
+            if (currBlock->shape[i][j] == ' ') continue;
+
+            int tx = currBlock->x + j;
+            int ty = currBlock->y + i;
+
+            if (ty >= 0 && ty < (int)grid.size() && tx >= 0 && tx < WIDTH)
+                grid[ty][tx] = ' ';
+        }
+    }
 }
 
 void Board::blockToBoard(BaseBlock* currBlock){
@@ -132,9 +139,9 @@ int Board::removeLine(){
             colorGrid[0][k] = WHITE;
         }
 
-        i++;
         draw();
         _sleep(200);
+        i++;
     }
 
     return linesCleared;
