@@ -56,7 +56,8 @@ Trạng thái game được quản lý bởi ma trận bàn cờ $B$ kích thư�
 
 **Ràng buộc hình học (Geometric Constraint):**
 Ô tương ứng trên bàn cờ phải là ô trống:
-* $B[y_0 + dy][x_0 + dx] = \text{'SPACE\_CHAR'}$
+
+$$B[y_0 + dy][x_0 + dx] = \text{'SPACE-CHAR'}$$
 
 Nếu bất kỳ điều kiện nào sai, hành động di chuyển/xoay sẽ bị ngăn chặn. Nếu đang rơi tự do, khối sẽ bị khóa (Lock) vào bàn cờ.
 
