@@ -162,7 +162,6 @@ void TetrisGame::updatePhysics(PlayerState& p) {
             p.comboCount++;
             scoreCalculate(p, linesCleared);
             increaseSpeed(p);
-
             bool isNew = checkHighScore(p.score);
             drawUI(p);
         } else {
@@ -187,16 +186,16 @@ void TetrisGame::updatePhysics(PlayerState& p) {
 
 void TetrisGame::scoreCalculate(PlayerState& p, int linesCleared) {
     int baseScore = 0;
-    switch (linesCleared){
-        case 1: baseScore = 100; break;
-        case 2: baseScore = 300; break;
-        case 3: baseScore = 500; break;
-        case 4: baseScore = 800; break;
-        default: return;
-    }
+    
+    if (linesCleared >= 4) baseScore = 800;
+    else if (linesCleared == 3) baseScore = 500;
+    else if (linesCleared == 2) baseScore = 300;
+    else if (linesCleared == 1) baseScore = 100;
+    else return;
 
     int comboBonus = max(0, p.comboCount - 1) * 50 * linesCleared;
-    p.score += baseScore * level + comboBonus;
+    int diff = max(1, level);
+    p.score += baseScore * diff + comboBonus;
 }
 
 void TetrisGame::increaseSpeed(PlayerState& p) {

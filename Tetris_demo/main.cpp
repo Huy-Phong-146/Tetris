@@ -6,6 +6,6 @@ int main() {
     srand(time(0));
     GameManager app;
     app.runProgram();
-
+    
     return 0;
 }
